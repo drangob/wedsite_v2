@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint code
+        run: npm run lint
+      - name: Check for formatting
+        run: npm run format:check
+  test:
+    runs-on: ubuntu-latest
+    # This will always skip the test job until i write tests
+    if: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Determine Docker tag
+        id: docker_tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "::set-output name=tag::latest"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME=$(echo ${{ github.head_ref }} | sed 's/\//-/g')
+            echo "::set-output name=tag::${BRANCH_NAME}"
+          else
+            echo "Unsupported event: ${{ github.event_name }}"
+            exit 1
+      - name: Build Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}:${{ steps.docker_tag.outputs.tag }} .
+      - name: Publish Docker image
+        run: docker push ghcr.io/${{ github.repository }}:${{ steps.docker_tag.outputs.tag }}
