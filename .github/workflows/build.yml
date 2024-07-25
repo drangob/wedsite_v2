@@ -60,17 +60,18 @@ jobs:
         uses: actions/checkout@v2
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Extract branch name
+        shell: bash
+        id: extract_branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
       - name: Determine Docker tag
         id: docker_tag
         run: |
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "::set-output name=tag::latest"
-          elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH_NAME=$(echo ${{ github.head_ref }} | sed 's/\//-/g')
-            echo "::set-output name=tag::${BRANCH_NAME}"
+          if [ "${{ steps.extract_branch.outputs.branch }}" = "main" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
           else
-            echo "Unsupported event: ${{ github.event_name }}"
-            exit 1
+            echo "tag=${{ steps.extract_branch.outputs.branch }}" >> $GITHUB_OUTPUT
+          fi
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ github.repository }}:${{ steps.docker_tag.outputs.tag }} .
       - name: Publish Docker image
