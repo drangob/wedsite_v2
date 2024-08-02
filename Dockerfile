@@ -56,4 +56,5 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 ENV PORT 3000
 
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["server.js"]
