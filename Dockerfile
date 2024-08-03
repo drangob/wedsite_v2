@@ -39,13 +39,18 @@ RUN \
 
 ##### RUNNER
 
-FROM --platform=linux/amd64 gcr.io/distroless/nodejs20-debian12 AS runner
+FROM --platform=linux/amd64 node:22-bullseye AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 
-# ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm install -g prisma
 
+# ENV NEXT_TELEMETRY_DISABLED 1
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+
+COPY prisma ./
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
@@ -57,4 +62,4 @@ EXPOSE 3000
 ENV PORT 3000
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["server.js"]
+CMD ["node server.js"]
