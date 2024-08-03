@@ -1,5 +1,6 @@
 import { getServerAuthSession } from "@/server/auth";
 import UserPicker from "./_components/UserPicker";
+import UserLogout from "./_components/UserLogout";
 
 export default async function Home() {
   const session = await getServerAuthSession();
@@ -16,8 +17,9 @@ export default async function Home() {
           with you all.
         </p>
         {session ? (
-          <div>
+          <div className="flex items-center gap-1">
             <p>Welcome {session.user?.name}!</p>
+            <UserLogout />
           </div>
         ) : (
           <div>
