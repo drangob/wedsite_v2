@@ -2,7 +2,7 @@
 
 # Run migrations
 echo "Running migrations..."
-npx prisma migrate deploy
+prisma migrate deploy
 
 # Start the application
 echo "Starting the application..."
