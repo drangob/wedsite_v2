@@ -8,6 +8,7 @@ Rewrite of my original Wedsite project (private project)
 
 - landing page with basic (not very secure) guest selection (with autofill)
 - auto login using an html query param with guest user id
+- admin pages for managing content and users
 
 ## TODO:
 
