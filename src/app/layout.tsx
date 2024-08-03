@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import LoginHandler from "./loginHandler";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Thomas & Sarah Wedding",
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <TRPCReactProvider>{children}</TRPCReactProvider>
-        <LoginHandler />
+        <Suspense>
+          <LoginHandler />
+        </Suspense>
       </body>
     </html>
   );
