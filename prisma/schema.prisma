@@ -35,12 +35,18 @@ model Account {
     @@unique([provider, providerAccountId])
 }
 
+enum Role {
+    GUEST
+    ADMIN
+}
+
 model Session {
     id           String   @id @default(cuid())
     sessionToken String   @unique
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role         Role     @default(GUEST) 
 }
 
 model User {
