@@ -35,6 +35,11 @@ model Account {
     @@unique([provider, providerAccountId])
 }
 
+enum Role {
+    GUEST
+    ADMIN
+}
+
 model Session {
     id           String   @id @default(cuid())
     sessionToken String   @unique
@@ -51,6 +56,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    role         Role     @default(GUEST) 
 }
 
 model VerificationToken {
