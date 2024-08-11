@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 
 import { env } from "@/env";
 
@@ -13,5 +13,6 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 export const db = globalForPrisma.prisma ?? createPrismaClient();
+export { Role as UserRole };
 
 if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;

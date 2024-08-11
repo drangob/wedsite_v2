@@ -8,7 +8,7 @@ import { type FormEvent, type Key, useState } from "react";
 import { signIn } from "next-auth/react";
 
 export default function UserPicker() {
-  const userQuery = api.user.getUsers.useQuery();
+  const userQuery = api.user.getGuests.useQuery();
 
   const users = userQuery.data ?? [];
 
@@ -18,9 +18,11 @@ export default function UserPicker() {
   const handleLogin = (event: FormEvent) => {
     event.preventDefault();
     if (selectedUserId) {
-      signIn("credentials", { user_id: selectedUserId }).catch((error) => {
-        console.error("Failed to sign in", error);
-      });
+      signIn("guest-credentials", { user_id: selectedUserId }).catch(
+        (error) => {
+          console.error("Failed to sign in", error);
+        },
+      );
     }
   };
 
@@ -33,7 +35,7 @@ export default function UserPicker() {
         isClearable={false}
         onSelectionChange={(user_id) => setSelectedUserId(user_id)}
         selectorButtonProps={{ className: "hidden" }}
-        popoverProps={inputLength < 3 ? { className: "hidden" } : {}}
+        popoverProps={inputLength < 2 ? { className: "hidden" } : {}}
         onInputChange={(value) => setInputLength(value.length)}
       >
         {(user) => (
