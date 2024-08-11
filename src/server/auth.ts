@@ -1,6 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import {
-  DefaultUser,
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
@@ -56,6 +55,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),
     CredentialsProvider({
+      id: "guest-credentials",
+      name: "Guest Credentials",
       credentials: {
         user_id: { label: "User ID", placeholder: "" },
       },
@@ -64,6 +65,7 @@ export const authOptions: NextAuthOptions = {
         const user = await db.user.findUnique({
           where: {
             id: credentials?.user_id,
+            role: "GUEST" as UserRole,
           },
         });
         if (!user) {
