@@ -1,17 +1,15 @@
 import { getServerAuthSession } from "@/server/auth";
-import { notFound, redirect } from "next/navigation";
+import AdminLogin from "./_components/AdminLogin";
 
 export default async function Page() {
   const session = await getServerAuthSession();
-  if (!session) {
-    redirect("/api/auth/signin");
-  }
-  const isAdmin = session?.user?.role === "ADMIN";
-  if (!isAdmin) {
-    notFound();
-  }
+
+  const loggedIn = !!session;
+
   return (
     <div className="m-4 max-w-lg">
+      <AdminLogin loggedIn={loggedIn} />
+
       <h1>Admin</h1>
       <p>
         This is the admin page, here you will be able to view and edit users,
