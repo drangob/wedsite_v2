@@ -23,20 +23,22 @@ const GuestsTable = () => {
   const utils = api.useUtils();
   const { data: guests = [], isLoading, error } = api.user.getGuests.useQuery();
 
-  const invalidateGuests = async () => {
-    await utils.user.getGuests.invalidate();
-  };
-
   const addGuestMutation = api.user.addGuest.useMutation({
-    onSuccess: invalidateGuests,
+    onSuccess: async () => {
+      await utils.user.getGuests.invalidate();
+    },
   });
 
   const editGuestMutation = api.user.editGuest.useMutation({
-    onSuccess: invalidateGuests,
+    onSuccess: async () => {
+      await utils.user.getGuests.invalidate();
+    },
   });
 
   const deleteGuestMutation = api.user.deleteGuest.useMutation({
-    onSuccess: invalidateGuests,
+    onSuccess: async () => {
+      await utils.user.getGuests.invalidate();
+    },
   });
 
   type Guest = (typeof guests)[0];
@@ -50,6 +52,7 @@ const GuestsTable = () => {
     id: "",
     name: "",
     email: "",
+    group: "day",
   });
 
   if (isLoading) return <div>Loading...</div>;
@@ -58,6 +61,7 @@ const GuestsTable = () => {
   const columns = [
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
+    { key: "group", label: "Group" },
     { key: "actions", label: "Actions" },
   ];
 
@@ -71,6 +75,7 @@ const GuestsTable = () => {
     key: guest.id,
     name: guest.name,
     email: guest.email,
+    group: guest.group,
     actions: (
       <div>
         <Button size="sm" color="primary" onPress={() => handleEdit(guest)}>
@@ -103,28 +108,29 @@ const GuestsTable = () => {
     addGuestMutation.mutate({
       name: newGuest.name,
       email: newGuest.email,
+      group: newGuest.group,
     });
     setIsModalOpen(false);
   };
 
   const handleSubmitEdit = (guest: Guest) => {
-    // Implement the logic to add a new guest
-    console.log("Edited guest:", guest);
+    console.log(guest);
     editGuestMutation.mutate({
       id: guest.id,
       name: guest.name,
       email: guest.email,
+      group: guest.group,
     });
     setIsModalOpen(false);
   };
 
   const handleAddNew = () => {
-    setSelectedGuest({ id: "", name: "", email: "" });
+    setSelectedGuest({ id: "", name: "", email: "", group: "day" });
     setModalSubmitFunc(() => handleSubmitNew);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (guest: { id: string; name: string; email: string }) => {
+  const handleEdit = (guest: Guest) => {
     setSelectedGuest(guest);
     setModalSubmitFunc(() => handleSubmitEdit);
     setIsModalOpen(true);

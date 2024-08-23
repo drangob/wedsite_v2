@@ -13,17 +13,20 @@ const GuestSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
+  group: z.enum(["day", "evening"]),
 });
 
 const CreateGuestSchema = z.object({
   name: z.string(),
   email: z.string().email(),
+  group: z.enum(["day", "evening"]),
 });
 
 const UpdateGuestSchema = z.object({
   id: z.string(),
-  name: z.string().optional(),
-  email: z.string().email().optional(),
+  name: z.string(),
+  email: z.string().email(),
+  group: z.enum(["day", "evening"]),
 });
 
 export const userRouter = createTRPCRouter({
@@ -32,31 +35,78 @@ export const userRouter = createTRPCRouter({
       where: {
         role: Role.GUEST,
       },
+      orderBy: {
+        name: "asc",
+      },
+      include: {
+        groups: {
+          select: {
+            group: true,
+          },
+        },
+      },
     });
-    return GuestSchema.array().parse(guests);
+    const guestsWithGroups = guests.map((guest) => {
+      const group = guest.groups[0]?.group?.name ?? "";
+      return { ...guest, group };
+    });
+    return GuestSchema.array().parse(guestsWithGroups);
   }),
 
   addGuest: adminProcedure
     .input(CreateGuestSchema)
     .mutation(async ({ input }) => {
+      const { group, ...rest } = input;
       const newGuest = await db.user.create({
         data: {
-          ...input,
+          ...rest,
           role: Role.GUEST,
+          groups: {
+            create: [
+              {
+                group: {
+                  connectOrCreate: {
+                    where: { name: group },
+                    create: {
+                      name: group,
+                    },
+                  },
+                },
+              },
+            ],
+          },
         },
       });
-      return GuestSchema.parse(newGuest);
+      return GuestSchema.parse({ ...newGuest, group: group });
     }),
 
   editGuest: adminProcedure
     .input(UpdateGuestSchema)
     .mutation(async ({ input }) => {
-      const { id, ...updateData } = input;
+      const { id, group, ...rest } = input;
+      // drop the existing group links
+      await db.userGroups.deleteMany({ where: { userId: id } });
       const updatedGuest = await db.user.update({
         where: { id },
-        data: updateData,
+        data: {
+          ...rest,
+          groups: {
+            create: [
+              {
+                group: {
+                  connectOrCreate: {
+                    where: { name: group },
+                    create: {
+                      name: group,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
       });
-      return GuestSchema.parse(updatedGuest);
+      return GuestSchema.parse({ ...updatedGuest, group: group });
     }),
 
   deleteGuest: adminProcedure
