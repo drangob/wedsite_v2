@@ -15,6 +15,7 @@ type Guest = {
   id?: string;
   name: string;
   email: string;
+  group: "day" | "evening";
 };
 
 export type ModalSubmitHandler = (guest: Guest) => void;
@@ -30,7 +31,7 @@ const GuestModal: React.FC<GuestModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  initialGuest = { id: undefined, name: "", email: "", type: "" },
+  initialGuest = { id: undefined, name: "", email: "", type: "", group: "day" },
 }) => {
   const [guest, setGuest] = useState<Guest>({ ...initialGuest });
 
@@ -69,9 +70,9 @@ const GuestModal: React.FC<GuestModalProps> = ({
               validationBehavior="native"
             />
             <Select
-              label="Guest Type"
-              value={"day"}
-              onChange={(e) => handleInputChange("type", e.target.value)}
+              label="Guest Group"
+              selectedKeys={[guest.group]}
+              onChange={(e) => handleInputChange("group", e.target.value)}
               isRequired
             >
               <SelectItem key="day" value="day">
