@@ -17,35 +17,33 @@ import {
   ModalContent,
 } from "@nextui-org/react";
 import GuestModal from "./_components/GuestModal";
-import { useState } from "react";
+import { type Key, useState } from "react";
 
 const GuestsTable = () => {
   const utils = api.useUtils();
   const { data: guests = [], isLoading, error } = api.user.getGuests.useQuery();
 
+  const invalidateGuests = async () => {
+    await utils.user.getGuests.invalidate();
+  };
+
   const addGuestMutation = api.user.addGuest.useMutation({
-    onSuccess: () => {
-      utils.user.getGuests.invalidate();
-    },
+    onSuccess: invalidateGuests,
   });
 
   const editGuestMutation = api.user.editGuest.useMutation({
-    onSuccess: () => {
-      utils.user.getGuests.invalidate();
-    },
+    onSuccess: invalidateGuests,
   });
 
   const deleteGuestMutation = api.user.deleteGuest.useMutation({
-    onSuccess: () => {
-      utils.user.getGuests.invalidate();
-    },
+    onSuccess: invalidateGuests,
   });
 
   type Guest = (typeof guests)[0];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalSubmitFunc, setModalSubmitFunc] = useState(() => () => {});
+  const [modalSubmitFunc, setModalSubmitFunc] = useState(() => {});
   const [selectedGuest, setSelectedGuest] = useState<Guest>({
     id: "",
     name: "",
@@ -64,8 +62,7 @@ const GuestsTable = () => {
   const filteredGuests = guests.filter(
     (guest) =>
       guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (guest.email &&
-        guest.email.toLowerCase().includes(searchTerm.toLowerCase())),
+      guest.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const rows = filteredGuests.map((guest) => ({
@@ -84,8 +81,9 @@ const GuestsTable = () => {
     ),
   }));
 
+  type GuestRowItem = (typeof rows)[0];
+
   const handleDelete = (guest: Guest) => {
-    console.log("hey?");
     setSelectedGuest(guest);
     setIsDeletionModalOpen(true);
   };
@@ -100,7 +98,7 @@ const GuestsTable = () => {
   };
 
   const handleSubmitNew = (newGuest: Guest) => {
-    const results = addGuestMutation.mutate({
+    addGuestMutation.mutate({
       name: newGuest.name,
       email: newGuest.email,
     });
@@ -110,7 +108,7 @@ const GuestsTable = () => {
   const handleSubmitEdit = (guest: Guest) => {
     // Implement the logic to add a new guest
     console.log("Edited guest:", guest);
-    const results = editGuestMutation.mutate({
+    editGuestMutation.mutate({
       id: guest.id,
       name: guest.name,
       email: guest.email,
@@ -154,9 +152,11 @@ const GuestsTable = () => {
           )}
         </TableHeader>
         <TableBody items={rows}>
-          {(item) => (
+          {(item: GuestRowItem) => (
             <TableRow key={item.key}>
-              {(columnKey) => <TableCell>{(item as any)[columnKey]}</TableCell>}
+              {(columnKey: Key) => (
+                <TableCell>{item[columnKey as keyof GuestRowItem]}</TableCell>
+              )}
             </TableRow>
           )}
         </TableBody>
