@@ -17,7 +17,7 @@ import { db } from "@/server/db";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
-type UserRole = "ADMIN" | "GUEST";
+type UserRole = "ADMIN" | "GUEST" | "OTHER";
 declare module "next-auth" {
   interface Session {
     user: {
