@@ -16,7 +16,7 @@ import {
   ModalFooter,
   ModalContent,
 } from "@nextui-org/react";
-import GuestModal from "./_components/GuestModal";
+import GuestModal, { type ModalSubmitHandler } from "./_components/GuestModal";
 import { type Key, useState } from "react";
 
 const GuestsTable = () => {
@@ -43,7 +43,9 @@ const GuestsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalSubmitFunc, setModalSubmitFunc] = useState(() => {});
+  const [modalSubmitFunc, setModalSubmitFunc] = useState<ModalSubmitHandler>(
+    () => undefined,
+  );
   const [selectedGuest, setSelectedGuest] = useState<Guest>({
     id: "",
     name: "",

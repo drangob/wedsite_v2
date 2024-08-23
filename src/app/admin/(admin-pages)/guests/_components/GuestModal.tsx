@@ -17,10 +17,12 @@ type Guest = {
   email: string;
 };
 
+export type ModalSubmitHandler = (guest: Guest) => void;
+
 interface GuestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (guest: Guest) => void;
+  onSubmit: ModalSubmitHandler;
   initialGuest: Guest;
 }
 
