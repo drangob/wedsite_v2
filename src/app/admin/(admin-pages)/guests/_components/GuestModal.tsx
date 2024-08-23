@@ -35,7 +35,7 @@ const GuestModal: React.FC<GuestModalProps> = ({
   // whenever the model opens or closes, update the initial guest state
   useEffect(() => {
     setGuest({ ...initialGuest });
-  }, [isOpen]);
+  }, [isOpen, initialGuest]);
 
   const handleInputChange = (field: string, value: string) => {
     setGuest({ ...guest, [field]: value });
