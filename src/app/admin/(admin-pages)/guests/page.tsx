@@ -18,27 +18,32 @@ import {
 } from "@nextui-org/react";
 import GuestModal, { type ModalSubmitHandler } from "./_components/GuestModal";
 import { type Key, useState } from "react";
+import toast from "react-hot-toast";
+import { type TRPCClientErrorLike } from "@trpc/client";
+import { type userRouter } from "@/server/api/routers/user";
 
 const GuestsTable = () => {
   const utils = api.useUtils();
   const { data: guests = [], isLoading, error } = api.user.getGuests.useQuery();
 
-  const addGuestMutation = api.user.addGuest.useMutation({
+  const commonMutationConfig = {
     onSuccess: async () => {
       await utils.user.getGuests.invalidate();
+      toast.success("Guest updated successfully");
     },
+    onError: (error: TRPCClientErrorLike<typeof userRouter>) =>
+      toast.error(error.message),
+  };
+  const addGuestMutation = api.user.addGuest.useMutation({
+    ...commonMutationConfig,
   });
 
   const editGuestMutation = api.user.editGuest.useMutation({
-    onSuccess: async () => {
-      await utils.user.getGuests.invalidate();
-    },
+    ...commonMutationConfig,
   });
 
   const deleteGuestMutation = api.user.deleteGuest.useMutation({
-    onSuccess: async () => {
-      await utils.user.getGuests.invalidate();
-    },
+    ...commonMutationConfig,
   });
 
   type Guest = (typeof guests)[0];
