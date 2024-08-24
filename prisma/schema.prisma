@@ -81,7 +81,7 @@ model UserGroups {
   userId  String
   groupId String
 
-  user  User  @relation(fields: [userId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   group Group @relation(fields: [groupId], references: [id])
 
   @@id([userId, groupId])
