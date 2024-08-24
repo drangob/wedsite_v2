@@ -1,5 +1,6 @@
 import { getServerAuthSession } from "@/server/auth";
 import AdminAuthWrapper from "./AdminAuthWrapper";
+import { Link, Navbar, NavbarContent, NavbarItem } from "@nextui-org/react";
 
 export default async function Layout({
   children,
@@ -9,7 +10,27 @@ export default async function Layout({
   const session = await getServerAuthSession();
   return (
     <>
-      <AdminAuthWrapper session={session}>{children}</AdminAuthWrapper>
+      <AdminAuthWrapper session={session}>
+        <Navbar>
+          <NavbarContent>
+            <NavbarItem>
+              <Link href="/admin">Home</Link>
+            </NavbarItem>
+            <NavbarItem>
+              <Link href="/admin/guests">Guests</Link>
+            </NavbarItem>
+            <NavbarItem>
+              <Link href="/admin/content">Content</Link>
+            </NavbarItem>
+            <NavbarItem>
+              <Link href="/admin/rsvps">RSVP&apos;s</Link>
+            </NavbarItem>
+          </NavbarContent>
+        </Navbar>
+        <div className="mx-auto flex max-w-[1024px] flex-col justify-center px-6">
+          {children}
+        </div>
+      </AdminAuthWrapper>
     </>
   );
 }
