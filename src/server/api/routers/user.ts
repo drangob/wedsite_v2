@@ -84,13 +84,12 @@ export const userRouter = createTRPCRouter({
     .input(UpdateGuestSchema)
     .mutation(async ({ input }) => {
       const { id, group, ...rest } = input;
-      // drop the existing group links
-      await db.userGroups.deleteMany({ where: { userId: id } });
       const updatedGuest = await db.user.update({
         where: { id },
         data: {
           ...rest,
           groups: {
+            deleteMany: {}, // remove all existing group links
             create: [
               {
                 group: {
