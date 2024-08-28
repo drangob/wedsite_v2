@@ -50,15 +50,17 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  email         String?      @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  role          Role         @default(OTHER)
-  groups        UserGroups[]
+  id                       String       @id @default(cuid())
+  name                     String?
+  email                    String?      @unique
+  emailVerified            DateTime?
+  image                    String?
+  accounts                 Account[]
+  sessions                 Session[]
+  role                     Role         @default(OTHER)
+  groups                   UserGroups[]
+  Rsvp                     Rsvp[]
+  ContentLastUpdatedByUser Content[]
 }
 
 model VerificationToken {
@@ -85,4 +87,28 @@ model UserGroups {
   group Group @relation(fields: [groupId], references: [id])
 
   @@id([userId, groupId])
+}
+
+// RSVP
+
+model Rsvp {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isAttending         Boolean
+  dietaryRequirements String?
+  extraInfo           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Content
+
+model Content {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  html            String
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String
+  updatedBy       User     @relation(fields: [updatedByUserId], references: [id])
 }
