@@ -1,6 +1,7 @@
 import { getServerAuthSession } from "@/server/auth";
 import UserPicker from "./_components/UserPicker";
 import UserLogout from "./_components/UserLogout";
+import ContentCard from "./_components/ContentCard";
 
 export default async function Home() {
   const session = await getServerAuthSession();
@@ -16,6 +17,7 @@ export default async function Home() {
           Welcome to our wedding website! We&apos;re so excited to celebrate
           with you all.
         </p>
+        <ContentCard slug="home" className="w-1/2" />
         {session ? (
           <div className="flex items-center gap-1">
             <p>Welcome {session.user?.name}!</p>
