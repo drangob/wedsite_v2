@@ -18,20 +18,20 @@ type Guest = {
   group: "day" | "evening";
 };
 
-export type ModalSubmitHandler = (guest: Guest) => void;
+export type CreateUpdateModalSubmitHandler = (guest: Guest) => void;
 
-interface GuestModalProps {
+interface GuestCreateUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: ModalSubmitHandler;
+  onSubmit: CreateUpdateModalSubmitHandler;
   initialGuest: Guest;
 }
 
-const GuestModal: React.FC<GuestModalProps> = ({
+const GuestCreateUpdateModal: React.FC<GuestCreateUpdateModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  initialGuest = { id: undefined, name: "", email: "", type: "", group: "day" },
+  initialGuest = { id: undefined, name: "", email: "", group: "day" },
 }) => {
   const [guest, setGuest] = useState<Guest>({ ...initialGuest });
 
@@ -97,4 +97,4 @@ const GuestModal: React.FC<GuestModalProps> = ({
   );
 };
 
-export default GuestModal;
+export default GuestCreateUpdateModal;

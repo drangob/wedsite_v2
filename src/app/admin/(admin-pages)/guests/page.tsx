@@ -1,6 +1,5 @@
 "use client";
 
-import { api } from "@/trpc/react";
 import {
   Table,
   TableHeader,
@@ -10,58 +9,30 @@ import {
   TableCell,
   Button,
   Input,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalContent,
 } from "@nextui-org/react";
-import GuestModal, { type ModalSubmitHandler } from "./_components/GuestModal";
+import CreateUpdateGuestModal, {
+  type CreateUpdateModalSubmitHandler,
+} from "./_components/GuestCreateUpdateModal";
 import { type Key, useState } from "react";
-import toast from "react-hot-toast";
-import { type TRPCClientErrorLike } from "@trpc/client";
-import { type userRouter } from "@/server/api/routers/user";
+import GuestDeletionModal from "./_components/GuestDeletionModal";
+import { useGuestsManagement } from "./_hooks/useGuestsManagement";
 
 const GuestsTable = () => {
-  const utils = api.useUtils();
-  const { data: guests = [], isLoading, error } = api.user.getGuests.useQuery();
-
-  const commonMutationConfig = {
-    onSuccess: async () => {
-      await utils.user.getGuests.invalidate();
-      toast.success("Guest updated successfully");
-    },
-    onError: (error: TRPCClientErrorLike<typeof userRouter>) =>
-      toast.error(error.message),
-  };
-  const addGuestMutation = api.user.addGuest.useMutation({
-    ...commonMutationConfig,
-  });
-
-  const editGuestMutation = api.user.editGuest.useMutation({
-    ...commonMutationConfig,
-  });
-
-  const deleteGuestMutation = api.user.deleteGuest.useMutation({
-    ...commonMutationConfig,
-  });
+  const { guests, isLoading, error, addGuest, editGuest, deleteGuest } =
+    useGuestsManagement();
 
   type Guest = (typeof guests)[0];
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateUpdateModalOpen, setIsCreateUpdateModalOpen] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalSubmitFunc, setModalSubmitFunc] = useState<ModalSubmitHandler>(
-    () => undefined,
-  );
+  const [createUpdateModalSubmitFunc, setModalSubmitFunc] =
+    useState<CreateUpdateModalSubmitHandler>(() => undefined);
   const [selectedGuest, setSelectedGuest] = useState<Guest>({
     id: "",
     name: "",
     email: "",
     group: "day",
   });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
 
   const columns = [
     { key: "name", label: "Name" },
@@ -93,6 +64,9 @@ const GuestsTable = () => {
     ),
   }));
 
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
   type GuestRowItem = (typeof rows)[0];
 
   const handleDelete = (guest: Guest) => {
@@ -101,7 +75,7 @@ const GuestsTable = () => {
   };
 
   const handleConfirmDelete = (guest: Guest) => {
-    deleteGuestMutation.mutate(guest.id);
+    deleteGuest(guest.id);
     setIsDeletionModalOpen(false);
   };
 
@@ -110,39 +84,39 @@ const GuestsTable = () => {
   };
 
   const handleSubmitNew = (newGuest: Guest) => {
-    addGuestMutation.mutate({
+    addGuest({
       name: newGuest.name,
       email: newGuest.email,
       group: newGuest.group,
     });
-    setIsModalOpen(false);
+    setIsCreateUpdateModalOpen(false);
   };
 
   const handleSubmitEdit = (guest: Guest) => {
     console.log(guest);
-    editGuestMutation.mutate({
+    editGuest({
       id: guest.id,
       name: guest.name,
       email: guest.email,
       group: guest.group,
     });
-    setIsModalOpen(false);
+    setIsCreateUpdateModalOpen(false);
   };
 
   const handleAddNew = () => {
     setSelectedGuest({ id: "", name: "", email: "", group: "day" });
     setModalSubmitFunc(() => handleSubmitNew);
-    setIsModalOpen(true);
+    setIsCreateUpdateModalOpen(true);
   };
 
   const handleEdit = (guest: Guest) => {
     setSelectedGuest(guest);
     setModalSubmitFunc(() => handleSubmitEdit);
-    setIsModalOpen(true);
+    setIsCreateUpdateModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseCreateUpdateModal = () => {
+    setIsCreateUpdateModalOpen(false);
   };
 
   return (
@@ -174,29 +148,18 @@ const GuestsTable = () => {
           )}
         </TableBody>
       </Table>
-      <GuestModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmit={modalSubmitFunc}
+      <CreateUpdateGuestModal
+        isOpen={isCreateUpdateModalOpen}
+        onClose={handleCloseCreateUpdateModal}
+        onSubmit={createUpdateModalSubmitFunc}
         initialGuest={selectedGuest}
       />
-      <Modal isOpen={isDeletionModalOpen} onClose={handleCloseDeletionModal}>
-        <ModalContent>
-          <ModalHeader>Delete Guest</ModalHeader>
-          <ModalBody>
-            <p>Are you sure you want to delete this guest?</p>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              color="danger"
-              onPress={() => handleConfirmDelete(selectedGuest)}
-            >
-              Yes
-            </Button>
-            <Button onPress={handleCloseDeletionModal}>No</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <GuestDeletionModal
+        isOpen={isDeletionModalOpen}
+        onClose={handleCloseDeletionModal}
+        onConfirm={handleConfirmDelete}
+        guest={selectedGuest}
+      />
     </>
   );
 };
