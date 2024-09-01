@@ -1,30 +1,31 @@
 "use client";
 
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableRow,
-  TableBody,
-  TableCell,
-  Button,
-  Input,
-} from "@nextui-org/react";
+import { useState } from "react";
+import { Button, Input } from "@nextui-org/react";
+import { type Guest } from "../../../_hooks/useGuestsManagement";
+import { useGuestsManagement } from "../../../_hooks/useGuestsManagement";
 import CreateUpdateGuestModal, {
   type CreateUpdateModalSubmitHandler,
 } from "./_components/GuestCreateUpdateModal";
-import { type Key, useState } from "react";
 import GuestDeletionModal from "./_components/GuestDeletionModal";
-import { useGuestsManagement } from "./_hooks/useGuestsManagement";
+import GuestsTable from "./_components/GuestTable";
 
-const GuestsTable = () => {
-  const { guests, isLoading, error, addGuest, editGuest, deleteGuest } =
-    useGuestsManagement();
+const GuestsPage = () => {
+  const {
+    guests,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    addGuest,
+    editGuest,
+    deleteGuest,
+    searchTerm,
+    setSearchTerm,
+  } = useGuestsManagement();
 
-  type Guest = (typeof guests)[0];
   const [isCreateUpdateModalOpen, setIsCreateUpdateModalOpen] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [createUpdateModalSubmitFunc, setModalSubmitFunc] =
     useState<CreateUpdateModalSubmitHandler>(() => undefined);
   const [selectedGuest, setSelectedGuest] = useState<Guest>({
@@ -34,40 +35,7 @@ const GuestsTable = () => {
     group: "day",
   });
 
-  const columns = [
-    { key: "name", label: "Name" },
-    { key: "email", label: "Email" },
-    { key: "group", label: "Group" },
-    { key: "actions", label: "Actions" },
-  ];
-
-  const filteredGuests = guests.filter(
-    (guest) =>
-      guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      guest.email?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  const rows = filteredGuests.map((guest) => ({
-    key: guest.id,
-    name: guest.name,
-    email: guest.email,
-    group: guest.group,
-    actions: (
-      <div>
-        <Button size="sm" color="primary" onPress={() => handleEdit(guest)}>
-          Edit
-        </Button>
-        <Button size="sm" color="danger" onPress={() => handleDelete(guest)}>
-          Delete
-        </Button>
-      </div>
-    ),
-  }));
-
-  if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
-
-  type GuestRowItem = (typeof rows)[0];
 
   const handleDelete = (guest: Guest) => {
     setSelectedGuest(guest);
@@ -132,22 +100,14 @@ const GuestsTable = () => {
           Add New Guest
         </Button>
       </div>
-      <Table aria-label="Guests table" className="h-auto min-w-full">
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={rows}>
-          {(item: GuestRowItem) => (
-            <TableRow key={item.key}>
-              {(columnKey: Key) => (
-                <TableCell>{item[columnKey as keyof GuestRowItem]}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <GuestsTable
+        guests={guests}
+        isLoading={isLoading}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+      />
       <CreateUpdateGuestModal
         isOpen={isCreateUpdateModalOpen}
         onClose={handleCloseCreateUpdateModal}
@@ -164,4 +124,4 @@ const GuestsTable = () => {
   );
 };
 
-export default GuestsTable;
+export default GuestsPage;
