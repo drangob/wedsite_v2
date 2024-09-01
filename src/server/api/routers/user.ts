@@ -90,7 +90,7 @@ export const userRouter = createTRPCRouter({
       });
 
       return {
-        items: validGuests,
+        items: GuestSchema.array().parse(validGuests),
         nextCursor,
         totalCount,
       };
