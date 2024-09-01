@@ -1,19 +1,17 @@
 "use client";
 
-import { api } from "@/trpc/react";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/autocomplete";
 import { Button } from "@nextui-org/react";
 import { type FormEvent, type Key, useState } from "react";
 
 import { signIn } from "next-auth/react";
+import { useGuestsManagement } from "../_hooks/useGuestsManagement";
 
-export default function UserPicker() {
-  const userQuery = api.user.getGuests.useQuery();
-
-  const users = userQuery.data ?? [];
+export default function GuestPicker() {
+  const { guests, isLoading, searchTerm, setSearchTerm } =
+    useGuestsManagement();
 
   const [selectedUserId, setSelectedUserId] = useState<Key | null>();
-  const [inputLength, setInputLength] = useState(0);
 
   const handleLogin = (event: FormEvent) => {
     event.preventDefault();
@@ -31,18 +29,20 @@ export default function UserPicker() {
       <Autocomplete
         className="h-12 w-full"
         label="What's your name?"
-        defaultItems={users}
+        defaultItems={guests}
+        isLoading={isLoading}
+        inputValue={searchTerm}
+        onInputChange={(value) => setSearchTerm(value)}
         isClearable={false}
         onSelectionChange={(user_id) => setSelectedUserId(user_id)}
         selectorButtonProps={{ className: "hidden" }}
-        popoverProps={inputLength < 2 ? { className: "hidden" } : {}}
-        onInputChange={(value) => setInputLength(value.length)}
+        popoverProps={searchTerm.length < 2 ? { className: "hidden" } : {}}
       >
-        {(user) => (
-          <AutocompleteItem key={user.id}>{user.name}</AutocompleteItem>
+        {(guest) => (
+          <AutocompleteItem key={guest.id}>{guest.name}</AutocompleteItem>
         )}
       </Autocomplete>
-      <Button className="ml-1 h-12" type="submit">
+      <Button className="ml-1 h-12" type="submit" color="primary">
         Login
       </Button>
     </form>

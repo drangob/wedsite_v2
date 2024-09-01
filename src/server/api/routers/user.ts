@@ -7,7 +7,7 @@ import {
 } from "@/server/api/trpc";
 
 import { db } from "@/server/db";
-import { Role } from "@prisma/client";
+import { type Prisma, Role } from "@prisma/client";
 
 const GuestSchema = z.object({
   id: z.string(),
@@ -30,28 +30,71 @@ const UpdateGuestSchema = z.object({
 });
 
 export const userRouter = createTRPCRouter({
-  getGuests: publicProcedure.query(async () => {
-    const guests = await db.user.findMany({
-      where: {
+  getGuests: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).nullish(),
+        cursor: z.string().nullish(),
+        search: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const limit = input.limit ?? 50;
+      const { cursor, search } = input;
+
+      const whereClause: Prisma.UserWhereInput = {
         role: Role.GUEST,
-      },
-      orderBy: {
-        name: "asc",
-      },
-      include: {
-        groups: {
-          select: {
-            group: true,
+        name: search ? { contains: search, mode: "insensitive" } : undefined,
+      };
+
+      const [guests, totalCount] = await Promise.all([
+        db.user.findMany({
+          take: limit + 1,
+          where: whereClause,
+          orderBy: {
+            name: "asc",
           },
-        },
-      },
-    });
-    const guestsWithGroups = guests.map((guest) => {
-      const group = guest.groups[0]?.group?.name ?? "";
-      return { ...guest, group };
-    });
-    return GuestSchema.array().parse(guestsWithGroups);
-  }),
+          cursor: cursor ? { id: cursor } : undefined,
+          include: {
+            groups: {
+              select: {
+                group: true,
+              },
+            },
+          },
+        }),
+        db.user.count({ where: whereClause }),
+      ]);
+
+      let nextCursor: typeof cursor = undefined;
+      if (guests.length > limit) {
+        const nextItem = guests.pop();
+        nextCursor = nextItem!.id;
+      }
+
+      const guestsWithGroups = guests.map((guest) => {
+        const group = guest.groups[0]?.group?.name ?? "";
+        return { ...guest, group };
+      });
+
+      const validGuests = guestsWithGroups.filter((guest) => {
+        const result = GuestSchema.safeParse(guest);
+        if (!result.success) {
+          console.warn(
+            `Invalid guest data: ${JSON.stringify(guest)}`,
+            result.error,
+          );
+          return false;
+        }
+        return true;
+      });
+
+      return {
+        items: validGuests,
+        nextCursor,
+        totalCount,
+      };
+    }),
 
   addGuest: adminProcedure
     .input(CreateGuestSchema)

@@ -1,5 +1,5 @@
 import { getServerAuthSession } from "@/server/auth";
-import UserPicker from "./_components/UserPicker";
+import GuestPicker from "./_components/GuestPicker";
 import UserLogout from "./_components/UserLogout";
 import ContentCard from "./_components/ContentCard";
 
@@ -26,7 +26,7 @@ export default async function Home() {
         ) : (
           <div>
             <p>Before you have a look around, who are you?</p>
-            <UserPicker />
+            <GuestPicker />
           </div>
         )}
       </div>

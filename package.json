@@ -22,6 +22,7 @@
     "@ckeditor/ckeditor5-react": "^9.0.0",
     "@nextui-org/autocomplete": "^2.1.5",
     "@nextui-org/react": "^2.4.6",
+    "@nextui-org/use-infinite-scroll": "^2.1.5",
     "@prisma/client": "^5.10.2",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-query": "^5.25.0",
@@ -38,6 +39,7 @@
     "react-hot-toast": "^2.4.1",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
+    "use-debounce": "^10.0.3",
     "zod": "^3.23.3"
   },
   "devDependencies": {
