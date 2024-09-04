@@ -7,6 +7,7 @@
     "build": "next build",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "db:seed": "prisma db seed",
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
@@ -16,6 +17,9 @@
     "makemigrations": "prisma migrate dev --name",
     "migrate": "prisma migrate deploy",
     "vercel-build": "prisma generate && prisma migrate deploy && next build"
+  },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.4.0",
