@@ -9,7 +9,7 @@ import {
 import { db } from "@/server/db";
 import { type Prisma, Role } from "@prisma/client";
 
-const GuestSchema = z.object({
+export const GuestSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
