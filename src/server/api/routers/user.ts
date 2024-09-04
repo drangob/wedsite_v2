@@ -13,20 +13,20 @@ export const GuestSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
-  group: z.enum(["day", "evening"]),
+  group: z.enum(["DAY", "EVENING"]),
 });
 
 const CreateGuestSchema = z.object({
   name: z.string(),
   email: z.string().email(),
-  group: z.enum(["day", "evening"]),
+  group: z.enum(["DAY", "EVENING"]),
 });
 
 const UpdateGuestSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
-  group: z.enum(["day", "evening"]),
+  group: z.enum(["DAY", "EVENING"]),
 });
 
 export const userRouter = createTRPCRouter({
@@ -55,13 +55,6 @@ export const userRouter = createTRPCRouter({
             name: "asc",
           },
           cursor: cursor ? { id: cursor } : undefined,
-          include: {
-            groups: {
-              select: {
-                group: true,
-              },
-            },
-          },
         }),
         db.user.count({ where: whereClause }),
       ]);
@@ -72,25 +65,8 @@ export const userRouter = createTRPCRouter({
         nextCursor = nextItem!.id;
       }
 
-      const guestsWithGroups = guests.map((guest) => {
-        const group = guest.groups[0]?.group?.name ?? "";
-        return { ...guest, group };
-      });
-
-      const validGuests = guestsWithGroups.filter((guest) => {
-        const result = GuestSchema.safeParse(guest);
-        if (!result.success) {
-          console.warn(
-            `Invalid guest data: ${JSON.stringify(guest)}`,
-            result.error,
-          );
-          return false;
-        }
-        return true;
-      });
-
       return {
-        items: GuestSchema.array().parse(validGuests),
+        items: GuestSchema.array().parse(guests),
         nextCursor,
         totalCount,
       };
@@ -99,56 +75,26 @@ export const userRouter = createTRPCRouter({
   addGuest: adminProcedure
     .input(CreateGuestSchema)
     .mutation(async ({ input }) => {
-      const { group, ...rest } = input;
       const newGuest = await db.user.create({
         data: {
-          ...rest,
+          ...input,
           role: Role.GUEST,
-          groups: {
-            create: [
-              {
-                group: {
-                  connectOrCreate: {
-                    where: { name: group },
-                    create: {
-                      name: group,
-                    },
-                  },
-                },
-              },
-            ],
-          },
         },
       });
-      return GuestSchema.parse({ ...newGuest, group: group });
+      return GuestSchema.parse({ ...newGuest });
     }),
 
   editGuest: adminProcedure
     .input(UpdateGuestSchema)
     .mutation(async ({ input }) => {
-      const { id, group, ...rest } = input;
+      const { id, ...rest } = input;
       const updatedGuest = await db.user.update({
         where: { id },
         data: {
           ...rest,
-          groups: {
-            deleteMany: {}, // remove all existing group links
-            create: [
-              {
-                group: {
-                  connectOrCreate: {
-                    where: { name: group },
-                    create: {
-                      name: group,
-                    },
-                  },
-                },
-              },
-            ],
-          },
         },
       });
-      return GuestSchema.parse({ ...updatedGuest, group: group });
+      return GuestSchema.parse(updatedGuest);
     }),
 
   deleteGuest: adminProcedure

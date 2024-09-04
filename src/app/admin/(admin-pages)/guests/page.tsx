@@ -32,7 +32,7 @@ const GuestsPage = () => {
     id: "",
     name: "",
     email: "",
-    group: "day",
+    group: "DAY",
   });
 
   if (error) return <div>Error: {error.message}</div>;
@@ -72,7 +72,7 @@ const GuestsPage = () => {
   };
 
   const handleAddNew = () => {
-    setSelectedGuest({ id: "", name: "", email: "", group: "day" });
+    setSelectedGuest({ id: "", name: "", email: "", group: "DAY" });
     setModalSubmitFunc(() => handleSubmitNew);
     setIsCreateUpdateModalOpen(true);
   };

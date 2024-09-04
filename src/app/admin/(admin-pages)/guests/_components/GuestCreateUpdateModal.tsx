@@ -15,7 +15,7 @@ type Guest = {
   id?: string;
   name: string;
   email: string;
-  group: "day" | "evening";
+  group: "DAY" | "EVENING";
 };
 
 export type CreateUpdateModalSubmitHandler = (guest: Guest) => void;
@@ -31,7 +31,7 @@ const GuestCreateUpdateModal: React.FC<GuestCreateUpdateModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  initialGuest = { id: undefined, name: "", email: "", group: "day" },
+  initialGuest = { id: undefined, name: "", email: "", group: "DAY" },
 }) => {
   const [guest, setGuest] = useState<Guest>({ ...initialGuest });
 
@@ -75,10 +75,10 @@ const GuestCreateUpdateModal: React.FC<GuestCreateUpdateModalProps> = ({
               onChange={(e) => handleInputChange("group", e.target.value)}
               isRequired
             >
-              <SelectItem key="day" value="day">
+              <SelectItem key="DAY" value="DAY">
                 Day
               </SelectItem>
-              <SelectItem key="evening" value="evening">
+              <SelectItem key="EVENING" value="EVENING">
                 Evening
               </SelectItem>
             </Select>

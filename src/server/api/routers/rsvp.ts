@@ -58,7 +58,7 @@ export const rsvpRouter = createTRPCRouter({
       const remappedRsvps = rsvps.map((rsvp) => ({
         ...rsvp,
         guest: rsvp.user,
-        group: "day",
+        group: "DAY",
       }));
 
       return {

@@ -41,6 +41,11 @@ enum Role {
   OTHER
 }
 
+enum Group {
+  DAY
+  EVENING
+}
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -50,17 +55,17 @@ model Session {
 }
 
 model User {
-  id                       String       @id @default(cuid())
+  id                       String    @id @default(cuid())
   name                     String?
-  email                    String?      @unique
+  email                    String?   @unique
   emailVerified            DateTime?
   image                    String?
   accounts                 Account[]
   sessions                 Session[]
-  role                     Role         @default(OTHER)
-  groups                   UserGroups[]
+  role                     Role      @default(OTHER)
   Rsvp                     Rsvp[]
   ContentLastUpdatedByUser Content[]
+  group                    Group     @default(DAY)
 }
 
 model VerificationToken {
@@ -69,24 +74,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-// user groups
-
-model Group {
-  id    String       @id @default(cuid())
-  name  String       @unique
-  users UserGroups[]
-}
-
-model UserGroups {
-  userId  String
-  groupId String
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group Group @relation(fields: [groupId], references: [id])
-
-  @@id([userId, groupId])
 }
 
 // RSVP
