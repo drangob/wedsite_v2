@@ -12,7 +12,7 @@ type Guest = {
   id: string;
   name: string;
   email: string;
-  group: "day" | "evening";
+  group: "DAY" | "EVENING";
 };
 
 interface GuestDeletionModalProps {

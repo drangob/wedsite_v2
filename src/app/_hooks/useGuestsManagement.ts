@@ -9,7 +9,7 @@ export interface Guest {
   id: string;
   name: string;
   email: string;
-  group: "day" | "evening";
+  group: "DAY" | "EVENING";
 }
 
 export const useGuestsManagement = () => {
