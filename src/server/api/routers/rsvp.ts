@@ -4,23 +4,29 @@ import {
   createTRPCRouter,
   publicProcedure,
   adminProcedure,
+  protectedProcedure,
 } from "@/server/api/trpc";
 
-import { db } from "@/server/db";
+import { db, UserRole } from "@/server/db";
 
 import { GuestSchema } from "./user";
 import { Prisma } from "@prisma/client";
 
-const RSVPSchema = z.object({
+export const RSVPSchema = z.object({
   id: z.string(),
   isAttending: z.boolean(),
   dietaryRequirements: z.string().optional(),
   extraInfo: z.string().optional(),
+  updatedAt: z.date(),
+});
+
+export const GuestRSVPSchema = z.object({
   guest: GuestSchema, // GuestSchema is imported from user.ts
+  rsvp: RSVPSchema.optional(),
 });
 
 export const rsvpRouter = createTRPCRouter({
-  getRSVPs: adminProcedure
+  getUserRSVPs: adminProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(100).nullish(),
@@ -32,39 +38,90 @@ export const rsvpRouter = createTRPCRouter({
       const limit = input.limit ?? 50;
       const { cursor, search } = input;
 
-      const whereClause = search
-        ? {
-            user: {
-              name: { contains: search, mode: Prisma.QueryMode.insensitive },
-            },
-          }
-        : {};
-
-      const [rsvps, totalCount] = await Promise.all([
-        db.rsvp.findMany({
+      const whereClause = {
+        ...(search
+          ? { name: { contains: search, mode: Prisma.QueryMode.insensitive } }
+          : {}),
+        role: UserRole.GUEST,
+      };
+      const [users, totalCount] = await Promise.all([
+        db.user.findMany({
           take: limit + 1,
           where: whereClause,
           orderBy: {
-            user: { name: "asc" },
+            name: "asc",
           },
           cursor: cursor ? { id: cursor } : undefined,
           include: {
-            user: true,
+            Rsvp: true,
           },
         }),
-        db.rsvp.count({ where: whereClause }),
+        db.user.count({ where: whereClause }),
       ]);
 
-      const remappedRsvps = rsvps.map((rsvp) => ({
-        ...rsvp,
-        guest: rsvp.user,
-        group: "DAY",
+      const userRSVPs = users.map((user) => ({
+        guest: {
+          ...user,
+        },
+        rsvp:
+          user.Rsvp && user.Rsvp.length === 1
+            ? {
+                ...user.Rsvp?.[0],
+              }
+            : undefined,
       }));
 
       return {
-        items: RSVPSchema.array().parse(remappedRsvps.slice(0, limit)),
-        nextCursor: rsvps[limit]?.id,
+        items: GuestRSVPSchema.array().parse(userRSVPs.slice(0, limit)),
+        nextCursor: users[limit]?.id,
         totalCount,
       };
+    }),
+  upsertGuestRSVP: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        isAttending: z.boolean(),
+        dietaryRequirements: z.string().optional(),
+        extraInfo: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { userId, isAttending, dietaryRequirements, extraInfo } = input;
+      const user = await db.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (
+        ctx.session.user.id !== userId &&
+        ctx.session.user.role !== UserRole.ADMIN
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      const rsvp = await db.rsvp.upsert({
+        where: {
+          userId,
+        },
+        update: {
+          isAttending,
+          dietaryRequirements,
+          extraInfo,
+        },
+        create: {
+          userId,
+          isAttending,
+          dietaryRequirements,
+          extraInfo,
+        },
+      });
+
+      return RSVPSchema.parse(rsvp);
     }),
 });
