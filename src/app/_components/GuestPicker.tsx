@@ -12,15 +12,18 @@ export default function GuestPicker() {
     useGuestsManagement();
 
   const [selectedUserId, setSelectedUserId] = useState<Key | null>();
+  const [loggingIn, setLoggingIn] = useState(false);
 
-  const handleLogin = (event: FormEvent) => {
+  const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
     if (selectedUserId) {
-      signIn("guest-credentials", { user_id: selectedUserId }).catch(
-        (error) => {
-          console.error("Failed to sign in", error);
-        },
-      );
+      setLoggingIn(true);
+      try {
+        await signIn("guest-credentials", { user_id: selectedUserId });
+      } catch (error) {
+        console.error("Failed to sign in", error);
+        setLoggingIn(false);
+      }
     }
   };
 
@@ -35,14 +38,23 @@ export default function GuestPicker() {
         onInputChange={(value) => setSearchTerm(value)}
         isClearable={false}
         onSelectionChange={(user_id) => setSelectedUserId(user_id)}
-        selectorButtonProps={{ className: "hidden" }}
-        popoverProps={searchTerm.length < 2 ? { className: "hidden" } : {}}
+        selectorButtonProps={isLoading ? {} : { className: "hidden" }}
+        popoverProps={
+          searchTerm.length < 2 || isLoading ? { className: "hidden" } : {}
+        }
+        disabled={loggingIn}
       >
         {(guest) => (
           <AutocompleteItem key={guest.id}>{guest.name}</AutocompleteItem>
         )}
       </Autocomplete>
-      <Button className="ml-1 h-12" type="submit" color="primary">
+      <Button
+        className="ml-1 h-12"
+        type="submit"
+        color="primary"
+        disabled={loggingIn}
+        isLoading={loggingIn}
+      >
         Login
       </Button>
     </form>

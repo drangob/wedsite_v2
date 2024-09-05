@@ -15,8 +15,9 @@ export interface Guest {
 export const useGuestsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  const isDebouncing = searchTerm !== debouncedSearchTerm;
 
-  const { data, isLoading, error, fetchNextPage, hasNextPage, refetch } =
+  const { data, isFetching, error, fetchNextPage, hasNextPage, refetch } =
     api.user.getGuests.useInfiniteQuery(
       {
         limit: 30,
@@ -56,7 +57,7 @@ export const useGuestsManagement = () => {
 
   return {
     guests,
-    isLoading,
+    isLoading: isFetching || isDebouncing,
     error,
     fetchNextPage,
     hasNextPage,
