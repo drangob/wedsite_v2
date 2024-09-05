@@ -27,7 +27,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+
+    "types": ["@testing-library/jest-dom"]
   },
   "include": [
     ".eslintrc.cjs",
@@ -36,7 +38,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "vitest.config.ts"
   ],
   "exclude": ["node_modules"]
 }
