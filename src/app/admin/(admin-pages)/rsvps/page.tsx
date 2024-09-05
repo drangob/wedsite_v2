@@ -150,7 +150,7 @@ const RSVPPage = () => {
 
 interface RSVPEditFormProps {
   guestRSVP?: GuestRSVP;
-  onSubmit(rsvp: GuestRSVP): void;
+  onSubmit: (rsvp: GuestRSVP) => void;
 }
 
 const RSVPEditForm: React.FC<RSVPEditFormProps> = ({ guestRSVP, onSubmit }) => {

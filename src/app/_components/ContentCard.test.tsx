@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 import ContentCard from "./ContentCard";
 
 import { api } from "@/trpc/react";
-import { TRPCClientErrorBase } from "@trpc/client";
 
 // Mock the api
 vi.mock("@/trpc/react", () => ({
