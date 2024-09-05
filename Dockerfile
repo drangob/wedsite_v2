@@ -1,27 +1,18 @@
 ##### DEPENDENCIES
 
-FROM --platform=linux/amd64 node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat openssl
+FROM --platform=linux/amd64 oven/bun:latest AS deps
 WORKDIR /app
 
 # Install Prisma Client - remove if not using Prisma
-
 COPY prisma ./
 
 # Install dependencies based on the preferred package manager
+COPY package.json bun.lockb* ./
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml\* ./
-
-RUN \
-    if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-    elif [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm i; \
-    else echo "Lockfile not found." && exit 1; \
-    fi
-
+RUN bun install --frozen-lockfile
 ##### BUILDER
 
-FROM --platform=linux/amd64 node:20-alpine AS builder
+FROM --platform=linux/amd64 oven/bun:latest AS builder
 ARG DATABASE_URL
 ARG NEXT_PUBLIC_CLIENTVAR
 WORKDIR /app
@@ -30,21 +21,16 @@ COPY . .
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN \
-    if [ -f yarn.lock ]; then SKIP_ENV_VALIDATION=1 yarn build; \
-    elif [ -f package-lock.json ]; then SKIP_ENV_VALIDATION=1 npm run build; \
-    elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && SKIP_ENV_VALIDATION=1 pnpm run build; \
-    else echo "Lockfile not found." && exit 1; \
-    fi
-
+RUN SKIP_ENV_VALIDATION=1 bun run build
 ##### RUNNER
 
-FROM --platform=linux/amd64 node:22-bullseye AS runner
+FROM --platform=linux/amd64 oven/bun:latest AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 
-RUN npm install -g prisma
+# Install Prisma CLI globally
+RUN bun add -g prisma
 
 # ENV NEXT_TELEMETRY_DISABLED 1
 COPY entrypoint.sh ./
@@ -62,4 +48,4 @@ EXPOSE 3000
 ENV PORT 3000
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["node", "server.js"]
+CMD ["bun", "run", "server.js"]
