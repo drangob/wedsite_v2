@@ -38,6 +38,12 @@ export const getUserRSVPsInput = z.object({
     ])
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+  filters: z.object({
+    hasRSVP: z.boolean().optional(),
+    isAttending: z.boolean().optional(),
+    hasDietaryRequirements: z.boolean().optional(),
+    hasExtraInfo: z.boolean().optional(),
+  }),
 });
 
 export const rsvpRouter = createTRPCRouter({
@@ -45,13 +51,43 @@ export const rsvpRouter = createTRPCRouter({
     .input(getUserRSVPsInput)
     .query(async ({ input }) => {
       const limit = input.limit ?? 50;
-      const { cursor, search, sortField = "name", sortOrder = "asc" } = input;
+      const {
+        cursor,
+        search,
+        sortField = "name",
+        sortOrder = "asc",
+        filters = {},
+      } = input;
 
-      const whereClause = {
+      const rsvpFilters: Prisma.RsvpWhereInput = {
+        ...(filters.hasRSVP === undefined
+          ? {}
+          : filters.hasRSVP
+            ? { isNot: null }
+            : { is: null }),
+        ...(filters.isAttending === undefined
+          ? {}
+          : { isAttending: filters.isAttending }),
+        ...(filters.hasDietaryRequirements === undefined
+          ? {}
+          : filters.hasDietaryRequirements
+            ? { dietaryRequirements: { not: { equals: "" } } }
+            : { dietaryRequirements: { equals: "" } }),
+        ...(filters.hasExtraInfo === undefined
+          ? {}
+          : filters.hasExtraInfo
+            ? { extraInfo: { not: { equals: "" } } }
+            : { extraInfo: { equals: "" } }),
+      };
+
+      console.log(rsvpFilters);
+
+      const whereClause: Prisma.UserWhereInput = {
         ...(search
           ? { name: { contains: search, mode: Prisma.QueryMode.insensitive } }
           : {}),
         role: UserRole.GUEST,
+        ...{ Rsvp: { ...rsvpFilters } },
       };
 
       const orderBy =
@@ -77,6 +113,7 @@ export const rsvpRouter = createTRPCRouter({
       const userRSVPs = users.map((user) => ({
         guest: {
           ...user,
+          Rsvp: undefined,
         },
         rsvp: user.Rsvp ?? undefined,
       }));

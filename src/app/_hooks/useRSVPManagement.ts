@@ -17,12 +17,17 @@ export type SortField = Exclude<
   z.infer<typeof getUserRSVPsInput.shape.sortField>,
   undefined
 >;
+export type GuestRSVPFilters = Exclude<
+  z.infer<typeof getUserRSVPsInput.shape.filters>,
+  undefined
+>;
 
 export const useRSVPManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [filters, setFilters] = useState<GuestRSVPFilters>({});
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, refetch } =
     api.rsvp.getUserRSVPs.useInfiniteQuery(
@@ -31,6 +36,7 @@ export const useRSVPManagement = () => {
         search: debouncedSearchTerm,
         sortField,
         sortOrder,
+        filters: filters,
       },
       { getNextPageParam: (lastPage) => lastPage.nextCursor },
     );
@@ -71,5 +77,7 @@ export const useRSVPManagement = () => {
     setSortField,
     sortOrder,
     setSortOrder,
+    filters,
+    setFilters,
   };
 };
