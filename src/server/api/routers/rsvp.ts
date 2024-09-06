@@ -24,18 +24,28 @@ export const GuestRSVPSchema = z.object({
   rsvp: RSVPSchema.optional(),
 });
 
+export const getUserRSVPsInput = z.object({
+  limit: z.number().min(1).max(100).nullish(),
+  cursor: z.string().nullish(),
+  search: z.string().optional(),
+  sortField: z
+    .enum([
+      "name",
+      "updatedAt",
+      "isAttending",
+      "dietaryRequirements",
+      "extraInfo",
+    ])
+    .optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+});
+
 export const rsvpRouter = createTRPCRouter({
   getUserRSVPs: adminProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100).nullish(),
-        cursor: z.string().nullish(),
-        search: z.string().optional(),
-      }),
-    )
+    .input(getUserRSVPsInput)
     .query(async ({ input }) => {
       const limit = input.limit ?? 50;
-      const { cursor, search } = input;
+      const { cursor, search, sortField = "name", sortOrder = "asc" } = input;
 
       const whereClause = {
         ...(search
@@ -43,13 +53,19 @@ export const rsvpRouter = createTRPCRouter({
           : {}),
         role: UserRole.GUEST,
       };
+
+      const orderBy =
+        sortField === "name"
+          ? { [sortField]: sortOrder }
+          : {
+              Rsvp: { [sortField]: sortOrder },
+            };
+
       const [users, totalCount] = await Promise.all([
         db.user.findMany({
           take: limit + 1,
           where: whereClause,
-          orderBy: {
-            name: "asc",
-          },
+          orderBy,
           cursor: cursor ? { id: cursor } : undefined,
           include: {
             Rsvp: true,
@@ -62,12 +78,7 @@ export const rsvpRouter = createTRPCRouter({
         guest: {
           ...user,
         },
-        rsvp:
-          user.Rsvp && user.Rsvp.length === 1
-            ? {
-                ...user.Rsvp?.[0],
-              }
-            : undefined,
+        rsvp: user.Rsvp ?? undefined,
       }));
 
       return {

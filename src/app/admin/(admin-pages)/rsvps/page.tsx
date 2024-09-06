@@ -18,10 +18,12 @@ import {
   useDisclosure,
   Textarea,
   Switch,
+  SortDescriptor,
 } from "@nextui-org/react";
 import {
   type GuestRSVP,
   type RSVP,
+  SortField,
   useRSVPManagement,
 } from "@/app/_hooks/useRSVPManagement";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -36,6 +38,10 @@ const RSVPPage = () => {
     searchTerm,
     setSearchTerm,
     upsertGuestRSVP,
+    sortField,
+    setSortField,
+    sortOrder,
+    setSortOrder,
   } = useRSVPManagement();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -61,6 +67,17 @@ const RSVPPage = () => {
     );
   };
 
+  const sortDescriptor: SortDescriptor = {
+    column: sortField,
+    direction: sortOrder === "asc" ? "ascending" : "descending",
+  };
+  const sort = (descriptor: SortDescriptor) => {
+    if (descriptor.column && descriptor.direction) {
+      setSortField(descriptor.column.toString() as SortField);
+      setSortOrder(descriptor.direction === "ascending" ? "asc" : "desc");
+    }
+  };
+
   return (
     <div className="p-4">
       <Input
@@ -70,58 +87,79 @@ const RSVPPage = () => {
         className="mb-4"
       />
 
-      {isLoading ? (
-        <div className="flex justify-center">
-          <Spinner />
-        </div>
-      ) : error ? (
-        <div>Error: {error.message}</div>
-      ) : (
-        <>
-          <Table aria-label="RSVP Table">
-            <TableHeader>
-              <TableColumn key="name" allowsSorting>
-                Name
-              </TableColumn>
-              <TableColumn key="hasRSVP" allowsSorting>
-                Has RSVP?
-              </TableColumn>
-              <TableColumn key="status" allowsSorting>
-                Attending?
-              </TableColumn>
-              <TableColumn key="dietaryRequirements" allowsSorting>
-                Has Dietary Requirements?
-              </TableColumn>
-              <TableColumn key="extraInfo" allowsSorting>
-                Has Extra Info?
-              </TableColumn>
-            </TableHeader>
-            <TableBody>
-              {guestRSVPs.map((rsvp) => (
-                <TableRow
-                  key={rsvp.guest.id}
-                  onClick={() => handleRowClick(rsvp)}
-                  className="cursor-pointer hover:bg-gray-100"
-                >
-                  <TableCell>{rsvp.guest.name}</TableCell>
-                  <TableCell>{getCheckmark(!!rsvp.rsvp?.id)}</TableCell>
-                  <TableCell>{getCheckmark(rsvp.rsvp?.isAttending)}</TableCell>
-                  <TableCell>
-                    {getCheckmark(rsvp.rsvp?.dietaryRequirements)}
-                  </TableCell>
-                  <TableCell>{getCheckmark(rsvp.rsvp?.extraInfo)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {hasNextPage && (
-            <Button onClick={() => fetchNextPage()} className="mt-4">
-              Load More
-            </Button>
+      <Table
+        aria-label="RSVP Table"
+        onSortChange={sort}
+        sortDescriptor={sortDescriptor}
+      >
+        <TableHeader>
+          <TableColumn key="name" allowsSorting className="w-2/6">
+            Name
+          </TableColumn>
+          <TableColumn key="updatedAt" allowsSorting className="w-1/6">
+            Has RSVP?
+          </TableColumn>
+          <TableColumn key="isAttending" allowsSorting className="w-1/6">
+            Attending?
+          </TableColumn>
+          <TableColumn
+            key="dietaryRequirements"
+            allowsSorting
+            className="w-1/6"
+          >
+            Has Dietary Requirements?
+          </TableColumn>
+          <TableColumn key="extraInfo" allowsSorting className="w-1/6">
+            Has Extra Info?
+          </TableColumn>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={5}>
+                <div className="flex justify-center">
+                  <Spinner />
+                </div>
+              </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+            </TableRow>
+          ) : error ? (
+            <TableRow>
+              <TableCell colSpan={5}>
+                <div>Error: {error.message}</div>
+              </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+              <TableCell className="hidden"> </TableCell>
+            </TableRow>
+          ) : (
+            guestRSVPs.map((rsvp) => (
+              <TableRow
+                key={rsvp.guest.id}
+                onClick={() => handleRowClick(rsvp)}
+                className="cursor-pointer hover:bg-gray-100"
+              >
+                <TableCell>{rsvp.guest.name}</TableCell>
+                <TableCell>{getCheckmark(!!rsvp.rsvp?.id)}</TableCell>
+                <TableCell>{getCheckmark(rsvp.rsvp?.isAttending)}</TableCell>
+                <TableCell>
+                  {getCheckmark(rsvp.rsvp?.dietaryRequirements)}
+                </TableCell>
+                <TableCell>{getCheckmark(rsvp.rsvp?.extraInfo)}</TableCell>
+              </TableRow>
+            ))
           )}
-        </>
+        </TableBody>
+      </Table>
+      {!isLoading && !error && hasNextPage && (
+        <Button onClick={() => fetchNextPage()} className="mt-4">
+          Load More
+        </Button>
       )}
-
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           {(onClose) => (

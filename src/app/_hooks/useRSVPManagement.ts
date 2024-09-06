@@ -6,22 +6,31 @@ import {
   type rsvpRouter,
   type GuestRSVPSchema,
   type RSVPSchema,
+  type getUserRSVPsInput,
 } from "@/server/api/routers/rsvp";
 import toast from "react-hot-toast";
 import { type TRPCClientErrorLike } from "@trpc/client";
 
 export type RSVP = z.infer<typeof RSVPSchema>;
 export type GuestRSVP = z.infer<typeof GuestRSVPSchema>;
+export type SortField = Exclude<
+  z.infer<typeof getUserRSVPsInput.shape.sortField>,
+  undefined
+>;
 
 export const useRSVPManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const { data, isLoading, error, fetchNextPage, hasNextPage, refetch } =
     api.rsvp.getUserRSVPs.useInfiniteQuery(
       {
         limit: 30,
         search: debouncedSearchTerm,
+        sortField,
+        sortOrder,
       },
       { getNextPageParam: (lastPage) => lastPage.nextCursor },
     );
@@ -58,5 +67,9 @@ export const useRSVPManagement = () => {
     searchTerm,
     setSearchTerm,
     upsertGuestRSVP,
+    sortField,
+    setSortField,
+    sortOrder,
+    setSortOrder,
   };
 };

@@ -63,7 +63,7 @@ model User {
   accounts                 Account[]
   sessions                 Session[]
   role                     Role      @default(OTHER)
-  Rsvp                     Rsvp[]
+  Rsvp                     Rsvp?
   ContentLastUpdatedByUser Content[]
   group                    Group     @default(DAY)
 }
