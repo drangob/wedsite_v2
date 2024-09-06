@@ -18,15 +18,21 @@ import {
   useDisclosure,
   Textarea,
   Switch,
-  SortDescriptor,
+  type SortDescriptor,
+  Card,
+  CardBody,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from "@nextui-org/react";
 import {
   type GuestRSVP,
   type RSVP,
-  SortField,
+  type SortField,
   useRSVPManagement,
 } from "@/app/_hooks/useRSVPManagement";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, CircleHelp, XCircle } from "lucide-react";
 
 const RSVPPage = () => {
   const {
@@ -42,6 +48,8 @@ const RSVPPage = () => {
     setSortField,
     sortOrder,
     setSortOrder,
+    filters,
+    setFilters,
   } = useRSVPManagement();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -79,13 +87,62 @@ const RSVPPage = () => {
   };
 
   return (
-    <div className="p-4">
-      <Input
-        placeholder="Search RSVPs"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
-      />
+    <div className="flex flex-col gap-2">
+      <Card>
+        <CardBody className="flex flex-row gap-2">
+          <Input
+            placeholder="Search RSVPs"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Dropdown>
+            <DropdownTrigger>
+              <Button variant="bordered">Filters</Button>
+            </DropdownTrigger>
+            <DropdownMenu closeOnSelect={false} selectionMode="none">
+              {(
+                [
+                  ["Has RSVP?", "hasRSVP"],
+                  ["Is Attending?", "isAttending"],
+                  ["Has Dietary Requirements?", "hasDietaryRequirements"],
+                  ["Has Extra Info?", "hasExtraInfo"],
+                ] as const
+              ).map(([text, field]) => (
+                <DropdownItem
+                  key={field}
+                  endContent={
+                    filters[field] === undefined ? (
+                      <CircleHelp />
+                    ) : filters[field] ? (
+                      <CheckCircle />
+                    ) : (
+                      <XCircle />
+                    )
+                  }
+                  onClick={() =>
+                    setFilters((prev) => {
+                      const currentValue = prev[field];
+                      let newValue;
+
+                      if (currentValue === undefined) {
+                        newValue = true;
+                      } else if (currentValue === true) {
+                        newValue = false;
+                      } else {
+                        newValue = undefined;
+                      }
+
+                      return { ...prev, [field]: newValue };
+                    })
+                  }
+                >
+                  {text}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        </CardBody>
+      </Card>
 
       <Table
         aria-label="RSVP Table"
