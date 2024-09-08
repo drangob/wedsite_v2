@@ -62,7 +62,6 @@ export const contentRouter = createTRPCRouter({
   createContent: adminProcedure
     .input(ContentSlugInput)
     .mutation(async ({ input, ctx }) => {
-      console.log(ctx);
       const newContent = await db.content.create({
         data: {
           slug: input.slug,
