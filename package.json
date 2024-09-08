@@ -16,7 +16,7 @@
     "format": "prettier --write .",
     "makemigrations": "prisma migrate dev --name",
     "migrate": "prisma migrate deploy",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && ([ \"$VERCEL_ENV\" != \"production\" ] && npx prisma db seed || echo \"Skipping seed in production\") && next build",
     "test": "vitest"
   },
   "prisma": {
