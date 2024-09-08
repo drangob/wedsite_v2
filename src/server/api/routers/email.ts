@@ -7,7 +7,7 @@ import Mailgun, { type MailgunMessageData } from "mailgun.js";
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
   username: "api",
-  key: process.env.MAILGUN_API_KEY ?? "",
+  key: process.env.MAILGUN_API_KEY ?? "dummy_key",
   url: "https://api.eu.mailgun.net",
 });
 const SendEmailInput = z.object({
