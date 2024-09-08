@@ -12,7 +12,6 @@ const LoginHandler = () => {
 
     // Trigger functions based on query parameters
     if (params.uid) {
-      console.log("uid exists:", params.uid);
       login(params.uid);
     }
   }, [searchParams]);
