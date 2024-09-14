@@ -5,14 +5,8 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   test: {
-    // jsdom for @/app/ and node for @/server/
-    environmentMatchGlobs: [
-      ["**/src/app/**/*.{ts,tsx}", "jsdom"],
-      ["**/src/server/**/*.{ts,tsx}", "node"],
-    ],
-    // environment: "jsdom",
     globals: true,
-    setupFiles: ["./src/setupTests.ts"],
+    setupFiles: ["./setupTests.ts"],
     env: {
       DATABASE_URL: "file:./db.sqlite",
       NEXTAUTH_URL: "http://localhost:3000",

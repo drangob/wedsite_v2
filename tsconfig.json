@@ -39,7 +39,7 @@
     "**/*.cjs",
     "**/*.js",
     ".next/types/**/*.ts",
-    "vitest.config.ts"
+    "vitest.config.base.ts"
   ],
   "exclude": ["node_modules"]
 }
