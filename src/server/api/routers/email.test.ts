@@ -3,6 +3,8 @@ import { type inferProcedureInput } from "@trpc/server";
 import { createCaller, type AppRouter } from "../root";
 import { createTRPCContext } from "../trpc";
 
+import { dbMock } from "@/server/setupTests";
+
 const mockMailgunMessageCreate = vi.hoisted(() =>
   vi.fn().mockResolvedValue({ id: "test-message-id" }),
 );
@@ -27,19 +29,6 @@ vi.mock("mailgun.js", () => {
   };
 });
 
-vi.mock("@/server/db", async () => {
-  const actual = await vi.importActual("@/server/db");
-  return {
-    db: {
-      user: {
-        findMany: vi.fn(() =>
-          Promise.resolve([{ email: "guest@example.com" }]),
-        ),
-      },
-    },
-    UserRole: actual.UserRole,
-  };
-});
 
 describe("email", () => {
   it("sends email to all guests", async () => {
@@ -48,6 +37,9 @@ describe("email", () => {
     const input: inferProcedureInput<
       AppRouter["email"]["sendEmailToAllGuests"]
     > = { subject: "Test subject", body: "Test body" };
+
+    // @ts-expect-error Partial definition of user for testing
+    dbMock.user.findMany.mockResolvedValue([{ email: "guest@example.com" }]);
 
     const result = await caller.email.sendEmailToAllGuests(input);
     expect(result).toEqual({ success: true, messageId: "test-message-id" });
