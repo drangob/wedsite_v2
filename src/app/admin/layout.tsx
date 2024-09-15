@@ -25,6 +25,9 @@ export default async function Layout({
             <NavbarItem>
               <Link href="/admin/rsvps">RSVP&apos;s</Link>
             </NavbarItem>
+            <NavbarItem>
+              <Link href="/admin/email">Email</Link>
+            </NavbarItem>
           </NavbarContent>
         </Navbar>
         <div className="mx-auto flex max-w-[1024px] flex-col justify-center px-6">
