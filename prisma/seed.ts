@@ -75,6 +75,31 @@ async function main() {
       });
     }
   }
+
+  // Create some emails
+  for (let i = 0; i < 10; i++) {
+    // get a random selection of the mock users
+    const users = await prisma.user.findMany({
+      take: 25,
+      skip: faker.number.int({ min: 0, max: numberOfGuests - 5 }),
+    });
+    await prisma.email.upsert({
+      where: { id: i.toString() },
+      update: {},
+      create: {
+        id: i.toString(),
+        from: process.env.MAILGUN_SENDER_EMAIL!,
+        subject: faker.lorem.sentence(),
+        body: faker.lorem.paragraph(),
+        sentAt: faker.date.recent(),
+        createdAt: faker.date.recent(),
+        updatedAt: faker.date.recent(),
+        to: {
+          connect: users.map((user) => ({ id: user.id })),
+        },
+      },
+    });
+  }
 }
 
 main()
