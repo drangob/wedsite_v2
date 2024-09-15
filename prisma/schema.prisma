@@ -66,6 +66,7 @@ model User {
   Rsvp                     Rsvp?
   ContentLastUpdatedByUser Content[]
   group                    Group     @default(DAY)
+  receivedEmails           Email[]   @relation("EmailToUser")
 }
 
 model VerificationToken {
@@ -98,4 +99,16 @@ model Content {
   updatedAt       DateTime @updatedAt
   updatedByUserId String
   updatedBy       User     @relation(fields: [updatedByUserId], references: [id])
+}
+
+// Email
+model Email {
+  id        String    @id @default(cuid())
+  from      String
+  to        User[]    @relation("EmailToUser")
+  subject   String
+  body      String
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
