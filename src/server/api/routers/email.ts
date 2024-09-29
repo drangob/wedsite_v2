@@ -153,4 +153,56 @@ export const emailRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  sendEmail: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      // Fetch all guest emails
+      const email = await db.email.findUnique({
+        where: {
+          id: input.id,
+        },
+        select: {
+          to: {
+            select: {
+              email: true,
+            },
+          },
+          subject: true,
+          body: true,
+        },
+      });
+
+      if (!email) {
+        throw new Error("Email not found");
+      }
+
+      if (email.to.length === 0) {
+        throw new Error("No guest emails found");
+      }
+
+      const emails = email.to
+        .map((to) => to.email)
+        .filter((email) => email !== null);
+
+      // Prepare email data
+      const emailData: MailgunMessageData = {
+        from: process.env.MAILGUN_SENDER_EMAIL ?? "",
+        to: emails,
+        subject: email.subject,
+        html: email.body,
+      };
+
+      // Send email using Mailgun
+      try {
+        const result = await mg.messages.create(
+          process.env.MAILGUN_DOMAIN ?? "",
+          emailData,
+        );
+        return { success: true, messageId: result.id };
+      } catch (error) {
+        console.error("Error sending email:", error);
+        throw new Error("Failed to send email");
+      }
+    }),
 });

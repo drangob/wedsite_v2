@@ -39,6 +39,10 @@ const EmailPage = () => {
     getCommonMutationConfig("Email saved"),
   );
 
+  const { mutate: sendEmailMutate } = api.email.sendEmail.useMutation(
+    getCommonMutationConfig("Email sent"),
+  );
+
   const [selectedEmail, setSelectedEmail] = useState<Email | undefined>();
 
   useEffect(() => {
@@ -87,7 +91,9 @@ const EmailPage = () => {
         email={selectedEmail}
         updateEmail={updateEmail}
         sendEmail={() => {
-          console.log("Sending email", selectedEmail);
+          if (selectedEmail) {
+            sendEmailMutate({ id: selectedEmail?.id });
+          }
         }}
       />
     </div>
