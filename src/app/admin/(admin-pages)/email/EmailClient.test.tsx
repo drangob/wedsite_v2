@@ -7,10 +7,17 @@ vi.mock("use-debounce", () => ({
   useDebounce: (email: string, debounceTime: number) => [email, debounceTime],
 }));
 
-vi.mock("@/app/_hooks/useGuestsManagement", () => ({
-  useGuestsManagement: vi.fn().mockReturnValue({
-    guests: [],
-  }),
+// Mock the api
+vi.mock("@/trpc/react", () => ({
+  api: {
+    user: {
+      getAllUsers: {
+        useQuery: vi.fn().mockReturnValue({
+          data: [],
+        }),
+      },
+    },
+  },
 }));
 
 describe("EmailClient", () => {
