@@ -187,7 +187,8 @@ export const emailRouter = createTRPCRouter({
       // Prepare email data
       const emailData: MailgunMessageData = {
         from: process.env.MAILGUN_SENDER_EMAIL ?? "",
-        to: emails,
+        to: process.env.MAILGUN_SENDER_EMAIL,
+        bcc: emails,
         subject: email.subject,
         html: email.body,
       };
