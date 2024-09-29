@@ -44,7 +44,12 @@ describe("RecepientPickerModal", () => {
 
   it("renders recepient picker correctly", () => {
     render(
-      <RecepientPickerModal isOpen={true} onClose={onClose} setTo={setTo} />,
+      <RecepientPickerModal
+        isOpen={true}
+        onClose={onClose}
+        setTo={setTo}
+        to={[]}
+      />,
     );
     expect(screen.getByText("Day Guests")).toBeInTheDocument();
     expect(screen.getByText("Evening Guests")).toBeInTheDocument();
