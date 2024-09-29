@@ -79,6 +79,7 @@ export const emailRouter = createTRPCRouter({
             createdAt: true,
             updatedAt: true,
           },
+          orderBy: { createdAt: "desc" },
         })
         .then((emails) =>
           emails.map((email) => ({
@@ -88,4 +89,51 @@ export const emailRouter = createTRPCRouter({
         ),
     );
   }),
+  createEmail: adminProcedure.mutation(async () => {
+    const a = await db.email.create({
+      data: {
+        from: process.env.MAILGUN_SENDER_EMAIL!,
+        subject: "New email",
+        body: "",
+        to: {
+          connect: [],
+        },
+      },
+    });
+    return a;
+  }),
+  deleteEmail: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      await db.email.delete({
+        where: {
+          id: input.id,
+        },
+      });
+      return { success: true };
+    }),
+  updateEmail: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        subject: z.string(),
+        body: z.string(),
+        to: z.array(GuestSchema),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await db.email.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          to: {
+            connect: input.to.map((user) => ({ id: user.id })),
+          },
+          subject: input.subject,
+          body: input.body,
+        },
+      });
+      return { success: true };
+    }),
 });

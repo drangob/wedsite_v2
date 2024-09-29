@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Input,
@@ -9,9 +9,37 @@ import {
   Textarea,
 } from "@nextui-org/react";
 import { Send, User } from "lucide-react";
+import { type Email } from "./page";
+import { useDebounce } from "use-debounce";
 
-const EmailClient: React.FC = () => {
-  const [newEmail, setNewEmail] = useState({ to: "", subject: "", body: "" });
+interface EmailClientProps {
+  email: Email | undefined;
+  updateEmail: (subject: string, body: string) => void;
+  sendEmail: () => void;
+}
+
+const EmailClient: React.FC<EmailClientProps> = ({
+  email: selectedEmail,
+  updateEmail,
+  sendEmail,
+}) => {
+  const [email, setEmail] = useState(selectedEmail);
+  const [debouncedEmail] = useDebounce(email, 500);
+
+  useEffect(() => {
+    // Update email if it has changed from the initial values
+    if (
+      debouncedEmail &&
+      (debouncedEmail.subject !== selectedEmail?.subject ||
+        debouncedEmail.body !== selectedEmail?.body)
+    ) {
+      updateEmail(debouncedEmail.subject, debouncedEmail.body);
+    }
+  }, [debouncedEmail, selectedEmail, updateEmail]);
+
+  if (!email) {
+    return <Card className="h-full lg:w-3/4"></Card>;
+  }
 
   return (
     <Card className="h-full lg:w-3/4">
@@ -20,15 +48,18 @@ const EmailClient: React.FC = () => {
           <Button variant="ghost" color="primary" className="flex-shrink-0">
             Select Users <User size="18px" />
           </Button>
-          <Input isReadOnly variant="bordered" placeholder="To:" />
+          <Input
+            isReadOnly
+            variant="bordered"
+            placeholder="To:"
+            aria-label="To:"
+          />
         </div>
         <Input
           label="Subject:"
           variant="bordered"
-          value={newEmail.subject}
-          onChange={(e) =>
-            setNewEmail({ ...newEmail, subject: e.target.value })
-          }
+          value={email.subject}
+          onChange={(e) => setEmail({ ...email, subject: e.target.value })}
         />
         <Textarea
           label="Body:"
@@ -39,12 +70,12 @@ const EmailClient: React.FC = () => {
             inputWrapper: "!h-full",
           }}
           className="!h-full"
-          value={newEmail.body}
-          onChange={(e) => setNewEmail({ ...newEmail, body: e.target.value })}
+          value={email.body}
+          onChange={(e) => setEmail({ ...email, body: e.target.value })}
         />
       </CardBody>
       <CardFooter className="flex flex-col items-end">
-        <Button variant="ghost" color="primary">
+        <Button variant="ghost" color="primary" onClick={() => sendEmail()}>
           Send <Send size="18px" />
         </Button>
       </CardFooter>

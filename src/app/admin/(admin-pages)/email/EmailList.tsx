@@ -48,27 +48,23 @@ interface EmailListProps {
   emails: Email[];
   selectedEmail?: Email;
   setSelectedEmail: (email: Email) => void;
+  createEmail: () => void;
+  deleteEmail: () => void;
 }
 
 const EmailList: React.FC<EmailListProps> = ({
   emails,
   selectedEmail,
   setSelectedEmail,
+  createEmail,
+  deleteEmail,
 }) => {
-  const addEmail = () => {
-    console.log("Add email");
-  };
-
-  const deleteEmail = () => {
-    console.log("Delete email");
-  };
-
   return (
     <Card className="lg:h-full lg:w-1/4">
       <CardBody className="flex flex-row gap-1 overflow-scroll lg:flex-col">
         {emails.map((email) => (
           <EmailCard
-            key={email.subject}
+            key={email.id}
             email={email}
             isSelected={selectedEmail?.id === email.id}
             onClick={() => setSelectedEmail(email)}
@@ -80,7 +76,7 @@ const EmailList: React.FC<EmailListProps> = ({
           variant="solid"
           color="primary"
           isIconOnly
-          onClick={addEmail}
+          onClick={createEmail}
           aria-label="Add email"
         >
           <PlusCircleIcon />
