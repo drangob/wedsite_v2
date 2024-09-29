@@ -70,6 +70,8 @@ const EmailClient: React.FC<EmailClientProps> = ({
               color="primary"
               className="flex-shrink-0"
               onClick={() => setIsRecepientPickerOpen(true)}
+              disabled={email.sent}
+              isDisabled={email.sent}
             >
               Select Users <User size="18px" />
             </Button>
@@ -79,6 +81,8 @@ const EmailClient: React.FC<EmailClientProps> = ({
               placeholder="To:"
               aria-label="To:"
               value={"To: " + to.join(", ")}
+              disabled={email.sent}
+              isDisabled={email.sent}
             />
           </div>
           <Input
@@ -86,6 +90,8 @@ const EmailClient: React.FC<EmailClientProps> = ({
             variant="bordered"
             value={email.subject}
             onChange={(e) => setEmail({ ...email, subject: e.target.value })}
+            disabled={email.sent}
+            isDisabled={email.sent}
           />
           <Textarea
             label="Body:"
@@ -98,10 +104,18 @@ const EmailClient: React.FC<EmailClientProps> = ({
             className="!h-full"
             value={email.body}
             onChange={(e) => setEmail({ ...email, body: e.target.value })}
+            disabled={email.sent}
+            isDisabled={email.sent}
           />
         </CardBody>
         <CardFooter className="flex flex-col items-end">
-          <Button variant="ghost" color="primary" onClick={() => sendEmail()}>
+          <Button
+            variant="ghost"
+            color="primary"
+            onClick={() => sendEmail()}
+            disabled={email.sent}
+            isDisabled={email.sent}
+          >
             Send <Send size="18px" />
           </Button>
         </CardFooter>
