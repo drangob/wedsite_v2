@@ -1,7 +1,5 @@
-import {
-  type Guest,
-  useGuestsManagement,
-} from "@/app/_hooks/useGuestsManagement";
+import { type Guest } from "@/app/_hooks/useGuestsManagement";
+import { api } from "@/trpc/react";
 import {
   Accordion,
   AccordionItem,
@@ -28,8 +26,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
   setTo,
   to = [],
 }) => {
-  const { guests } = useGuestsManagement();
-
+  const { data: guests = [] } = api.user.getAllUsers.useQuery();
   interface GuestSelection {
     guest: Guest;
     selected: boolean;
@@ -99,7 +96,11 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={closeModal}>
+    <Modal
+      isOpen={isOpen}
+      onClose={closeModal}
+      className="max-h-[calc(100vh-10rem)]"
+    >
       <ModalContent>
         <ModalHeader>Select Recipients</ModalHeader>
         <ModalBody>
@@ -114,6 +115,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
               <AccordionItem
                 title="Select specific day guests"
                 aria-label="open specific day guest list"
+                classNames={{ content: "overflow-auto max-h-80" }}
               >
                 {dayGuests.map((e) => (
                   <Switch
@@ -137,6 +139,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
               <AccordionItem
                 title="Select specific evening guests"
                 aria-label="open specific evening guest list"
+                classNames={{ content: "overflow-auto max-h-80" }}
               >
                 {eveningGuests.map((e) => (
                   <Switch
