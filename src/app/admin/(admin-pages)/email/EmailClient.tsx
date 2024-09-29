@@ -15,7 +15,7 @@ import RecepientPickerModal from "./RecepientPickerModal";
 
 interface EmailClientProps {
   email: Email | undefined;
-  updateEmail: (subject: string, body: string) => void;
+  updateEmail: (subject: string, body: string, to: string[]) => void;
   sendEmail: () => void;
 }
 
@@ -27,16 +27,32 @@ const EmailClient: React.FC<EmailClientProps> = ({
   const [email, setEmail] = useState(selectedEmail);
   const [debouncedEmail] = useDebounce(email, 500);
   const [isRecepientPickerOpen, setIsRecepientPickerOpen] = useState(false);
-  const [to, setTo] = useState<string[]>([]);
+  const [to, setTo] = useState<string[]>(email?.to ?? []);
+
+  useEffect(() => {
+    setEmail((prev) => {
+      if (prev) {
+        return {
+          ...prev,
+          to,
+        };
+      }
+    });
+  }, [setEmail, to]);
 
   useEffect(() => {
     // Update email if it has changed from the initial values
     if (
       debouncedEmail &&
       (debouncedEmail.subject !== selectedEmail?.subject ||
-        debouncedEmail.body !== selectedEmail?.body)
+        debouncedEmail.body !== selectedEmail?.body ||
+        debouncedEmail.to !== selectedEmail?.to)
     ) {
-      updateEmail(debouncedEmail.subject, debouncedEmail.body);
+      updateEmail(
+        debouncedEmail.subject,
+        debouncedEmail.body,
+        debouncedEmail.to,
+      );
     }
   }, [debouncedEmail, selectedEmail, updateEmail]);
 
@@ -94,6 +110,7 @@ const EmailClient: React.FC<EmailClientProps> = ({
         isOpen={isRecepientPickerOpen}
         onClose={() => setIsRecepientPickerOpen(false)}
         setTo={setTo}
+        to={to}
       />
     </>
   );

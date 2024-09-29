@@ -20,6 +20,7 @@ describe("EmailClient", () => {
     body: "Some body text",
     updatedAt: new Date(),
     sent: false,
+    to: [],
   };
   let updateEmail: Mock;
   let sendEmail: Mock;
@@ -54,7 +55,7 @@ describe("EmailClient", () => {
       target: { value: newSubject },
     });
 
-    expect(updateEmail).toHaveBeenCalledWith(newSubject, mockEmail.body);
+    expect(updateEmail).toHaveBeenCalledWith(newSubject, mockEmail.body, []);
   });
 
   it("calls updateEmail when the body is changed", () => {
@@ -70,7 +71,7 @@ describe("EmailClient", () => {
       target: { value: newBody },
     });
 
-    expect(updateEmail).toHaveBeenCalledWith(mockEmail.subject, newBody);
+    expect(updateEmail).toHaveBeenCalledWith(mockEmail.subject, newBody, []);
   });
 
   it("calls sendEmail when the send button is clicked", () => {

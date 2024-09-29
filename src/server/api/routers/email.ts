@@ -19,7 +19,7 @@ const SendEmailInput = z.object({
 const EmailSchema = z.object({
   id: z.string(),
   from: z.string(),
-  to: z.array(GuestSchema),
+  to: z.array(z.string()),
   subject: z.string(),
   body: z.string(),
   sent: z.boolean(),
@@ -84,6 +84,7 @@ export const emailRouter = createTRPCRouter({
         .then((emails) =>
           emails.map((email) => ({
             ...email,
+            to: email.to.map((to) => to.email),
             sent: email.sentAt !== null,
           })),
         ),
@@ -118,22 +119,38 @@ export const emailRouter = createTRPCRouter({
         id: z.string(),
         subject: z.string(),
         body: z.string(),
-        to: z.array(GuestSchema),
+        to: z.array(z.string()),
       }),
     )
     .mutation(async ({ input }) => {
-      await db.email.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          to: {
-            connect: input.to.map((user) => ({ id: user.id })),
+      await db.$transaction(async (prisma) => {
+        // Remove all 'to' connections
+        await prisma.email.update({
+          where: {
+            id: input.id,
           },
-          subject: input.subject,
-          body: input.body,
-        },
+          data: {
+            to: {
+              set: [], // This will remove all connections
+            },
+          },
+        });
+
+        // Update with new 'to' connections
+        await prisma.email.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            to: {
+              connect: input.to.map((email) => ({ email: email })),
+            },
+            subject: input.subject,
+            body: input.body,
+          },
+        });
       });
+
       return { success: true };
     }),
 });

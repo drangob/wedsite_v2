@@ -19,12 +19,14 @@ interface RecepientPickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   setTo: (emails: string[]) => void;
+  to: string[];
 }
 
 const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
   isOpen,
   onClose,
   setTo,
+  to = [],
 }) => {
   const { guests } = useGuestsManagement();
 
@@ -41,14 +43,17 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
     setDayGuests(
       guests
         .filter((guest) => guest.group === "DAY")
-        .map((guest) => ({ guest, selected: false })),
+        .map((guest) => ({
+          guest,
+          selected: to.includes(guest.email),
+        })),
     );
     setEveningGuests(
       guests
         .filter((guest) => guest.group === "EVENING")
-        .map((guest) => ({ guest, selected: false })),
+        .map((guest) => ({ guest, selected: to.includes(guest.email) })),
     );
-  }, [guests]);
+  }, [guests, to]);
 
   const allDayGuestsSelected = dayGuests.every((e) => e.selected);
   const allEveningGuestsSelected = eveningGuests.every((e) => e.selected);

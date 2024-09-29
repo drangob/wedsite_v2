@@ -3,7 +3,7 @@
 import { api } from "@/trpc/react";
 import EmailClient from "./EmailClient";
 import EmailList from "./EmailList";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type emailRouter } from "@/server/api/routers/email";
@@ -13,6 +13,7 @@ export interface Email {
   body: string;
   updatedAt: Date;
   sent: boolean;
+  to: string[];
 }
 
 const EmailPage = () => {
@@ -55,13 +56,13 @@ const EmailPage = () => {
   }, [deleteEmailMutate, selectedEmail]);
 
   const updateEmail = useCallback(
-    (subject: string, body: string) => {
+    (subject: string, body: string, to: string[]) => {
       if (selectedEmail?.id) {
         updateEmailMutate({
           id: selectedEmail.id,
           subject: subject,
           body: body,
-          to: [],
+          to: to,
         });
       }
     },
