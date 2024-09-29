@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, type Mock, beforeEach } from "vitest";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import RecepientPickerModal from "./RecepientPickerModal";
 
 // Mock the api
