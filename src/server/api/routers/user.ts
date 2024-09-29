@@ -9,7 +9,7 @@ import {
 import { db } from "@/server/db";
 import { type Prisma, Role } from "@prisma/client";
 
-export const GuestSchema = z.object({
+export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string(),
@@ -66,7 +66,7 @@ export const userRouter = createTRPCRouter({
       }
 
       return {
-        items: GuestSchema.array().parse(guests),
+        items: UserSchema.array().parse(guests),
         nextCursor,
         totalCount,
       };
@@ -81,7 +81,7 @@ export const userRouter = createTRPCRouter({
           role: Role.GUEST,
         },
       });
-      return GuestSchema.parse({ ...newGuest });
+      return UserSchema.parse({ ...newGuest });
     }),
 
   editGuest: adminProcedure
@@ -94,7 +94,7 @@ export const userRouter = createTRPCRouter({
           ...rest,
         },
       });
-      return GuestSchema.parse(updatedGuest);
+      return UserSchema.parse(updatedGuest);
     }),
 
   deleteGuest: adminProcedure
@@ -105,4 +105,14 @@ export const userRouter = createTRPCRouter({
       });
       return { success: true };
     }),
+
+  getAllUsers: adminProcedure.query(async () => {
+    return UserSchema.array().parseAsync(
+      await db.user.findMany({
+        orderBy: {
+          name: "asc",
+        },
+      }),
+    );
+  }),
 });

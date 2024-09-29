@@ -3,7 +3,6 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import formData from "form-data";
 import Mailgun, { type MailgunMessageData } from "mailgun.js";
-import { GuestSchema } from "./user";
 
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
