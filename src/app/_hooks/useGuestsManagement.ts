@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type userRouter } from "@/server/api/routers/user";
 import { useDebounce } from "use-debounce";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export interface Guest {
   id: string;
@@ -26,7 +26,9 @@ export const useGuestsManagement = () => {
       { getNextPageParam: (lastPage) => lastPage.nextCursor },
     );
 
-  const guests = data?.pages.flatMap((page) => page.items) ?? [];
+  const guests = useMemo(() => {
+    return data?.pages.flatMap((page) => page.items) ?? [];
+  }, [data]);
 
   const commonMutationConfig = {
     onSuccess: async () => {
