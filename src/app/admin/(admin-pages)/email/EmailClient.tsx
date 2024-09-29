@@ -11,6 +11,7 @@ import {
 import { Send, User } from "lucide-react";
 import { type Email } from "./page";
 import { useDebounce } from "use-debounce";
+import RecepientPickerModal from "./RecepientPickerModal";
 
 interface EmailClientProps {
   email: Email | undefined;
@@ -25,6 +26,8 @@ const EmailClient: React.FC<EmailClientProps> = ({
 }) => {
   const [email, setEmail] = useState(selectedEmail);
   const [debouncedEmail] = useDebounce(email, 500);
+  const [isRecepientPickerOpen, setIsRecepientPickerOpen] = useState(false);
+  const [to, setTo] = useState<string[]>([]);
 
   useEffect(() => {
     // Update email if it has changed from the initial values
@@ -42,44 +45,57 @@ const EmailClient: React.FC<EmailClientProps> = ({
   }
 
   return (
-    <Card className="h-full lg:w-3/4">
-      <CardBody className="flex gap-4">
-        <div className="flex gap-1">
-          <Button variant="ghost" color="primary" className="flex-shrink-0">
-            Select Users <User size="18px" />
-          </Button>
+    <>
+      <Card className="h-full lg:w-3/4">
+        <CardBody className="flex gap-4">
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              color="primary"
+              className="flex-shrink-0"
+              onClick={() => setIsRecepientPickerOpen(true)}
+            >
+              Select Users <User size="18px" />
+            </Button>
+            <Input
+              isReadOnly
+              variant="bordered"
+              placeholder="To:"
+              aria-label="To:"
+              value={"To: " + to.join(", ")}
+            />
+          </div>
           <Input
-            isReadOnly
+            label="Subject:"
             variant="bordered"
-            placeholder="To:"
-            aria-label="To:"
+            value={email.subject}
+            onChange={(e) => setEmail({ ...email, subject: e.target.value })}
           />
-        </div>
-        <Input
-          label="Subject:"
-          variant="bordered"
-          value={email.subject}
-          onChange={(e) => setEmail({ ...email, subject: e.target.value })}
-        />
-        <Textarea
-          label="Body:"
-          variant="bordered"
-          disableAutosize
-          classNames={{
-            input: "h-full",
-            inputWrapper: "!h-full",
-          }}
-          className="!h-full"
-          value={email.body}
-          onChange={(e) => setEmail({ ...email, body: e.target.value })}
-        />
-      </CardBody>
-      <CardFooter className="flex flex-col items-end">
-        <Button variant="ghost" color="primary" onClick={() => sendEmail()}>
-          Send <Send size="18px" />
-        </Button>
-      </CardFooter>
-    </Card>
+          <Textarea
+            label="Body:"
+            variant="bordered"
+            disableAutosize
+            classNames={{
+              input: "h-full",
+              inputWrapper: "!h-full",
+            }}
+            className="!h-full"
+            value={email.body}
+            onChange={(e) => setEmail({ ...email, body: e.target.value })}
+          />
+        </CardBody>
+        <CardFooter className="flex flex-col items-end">
+          <Button variant="ghost" color="primary" onClick={() => sendEmail()}>
+            Send <Send size="18px" />
+          </Button>
+        </CardFooter>
+      </Card>
+      <RecepientPickerModal
+        isOpen={isRecepientPickerOpen}
+        onClose={() => setIsRecepientPickerOpen(false)}
+        setTo={setTo}
+      />
+    </>
   );
 };
 

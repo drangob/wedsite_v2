@@ -7,6 +7,12 @@ vi.mock("use-debounce", () => ({
   useDebounce: (email: string, debounceTime: number) => [email, debounceTime],
 }));
 
+vi.mock("@/app/_hooks/useGuestsManagement", () => ({
+  useGuestsManagement: vi.fn().mockReturnValue({
+    guests: [],
+  }),
+}));
+
 describe("EmailClient", () => {
   const mockEmail = {
     id: "2",
