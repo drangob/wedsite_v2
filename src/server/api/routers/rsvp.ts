@@ -8,7 +8,7 @@ import {
 
 import { db, UserRole } from "@/server/db";
 
-import { GuestSchema } from "./user";
+import { UserSchema } from "./user";
 import { Prisma } from "@prisma/client";
 
 export const RSVPSchema = z.object({
@@ -20,7 +20,7 @@ export const RSVPSchema = z.object({
 });
 
 export const GuestRSVPSchema = z.object({
-  guest: GuestSchema, // GuestSchema is imported from user.ts
+  guest: UserSchema, // GuestSchema is imported from user.ts
   rsvp: RSVPSchema.optional(),
 });
 
