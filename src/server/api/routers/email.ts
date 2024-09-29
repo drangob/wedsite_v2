@@ -199,6 +199,14 @@ export const emailRouter = createTRPCRouter({
           process.env.MAILGUN_DOMAIN ?? "",
           emailData,
         );
+        await db.email.update({
+          where: {
+            id: input.id,
+          },
+          data: {
+            sentAt: new Date(),
+          },
+        });
         return { success: true, messageId: result.id };
       } catch (error) {
         console.error("Error sending email:", error);
