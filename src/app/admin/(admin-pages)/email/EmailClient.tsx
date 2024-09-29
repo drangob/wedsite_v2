@@ -112,7 +112,15 @@ const EmailClient: React.FC<EmailClientProps> = ({
           <Button
             variant="ghost"
             color="primary"
-            onClick={() => sendEmail()}
+            onClick={() => {
+              setEmail((prev) => {
+                if (!prev) {
+                  return;
+                }
+                return { ...prev, sent: true };
+              });
+              sendEmail();
+            }}
             disabled={email.sent}
             isDisabled={email.sent}
           >
