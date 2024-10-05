@@ -59,28 +59,33 @@ export const rsvpRouter = createTRPCRouter({
         filters = {},
       } = input;
 
-      const rsvpFilters: Prisma.RsvpWhereInput = {
-        ...(filters.hasRSVP === undefined
-          ? {}
-          : filters.hasRSVP
-            ? { isNot: null }
-            : { is: null }),
-        ...(filters.isAttending === undefined
-          ? {}
-          : { isAttending: filters.isAttending }),
-        ...(filters.hasDietaryRequirements === undefined
-          ? {}
-          : filters.hasDietaryRequirements
-            ? { dietaryRequirements: { not: { equals: "" } } }
-            : { dietaryRequirements: { equals: "" } }),
-        ...(filters.hasExtraInfo === undefined
-          ? {}
-          : filters.hasExtraInfo
-            ? { extraInfo: { not: { equals: "" } } }
-            : { extraInfo: { equals: "" } }),
-      };
+      const properFiltersApplied =
+        Object.keys(filters).filter((key) => key !== "hasRSVP").length > 0;
 
-      console.log(rsvpFilters);
+      // @ts-expect-error - TS dislikes the is: null here
+      const rsvpFilters: Prisma.RsvpWhereInput = {
+        ...(filters.hasRSVP === undefined && !properFiltersApplied
+          ? {}
+          : (filters.hasRSVP ?? properFiltersApplied)
+            ? {
+                AND: [
+                  filters.isAttending === undefined
+                    ? {}
+                    : { isAttending: filters.isAttending },
+                  filters.hasDietaryRequirements === undefined
+                    ? {}
+                    : filters.hasDietaryRequirements
+                      ? { dietaryRequirements: { not: { equals: "" } } }
+                      : { dietaryRequirements: { equals: "" } },
+                  filters.hasExtraInfo === undefined
+                    ? {}
+                    : filters.hasExtraInfo
+                      ? { extraInfo: { not: { equals: "" } } }
+                      : { extraInfo: { equals: "" } },
+                ],
+              }
+            : { is: null }),
+      };
 
       const whereClause: Prisma.UserWhereInput = {
         ...(search
@@ -97,7 +102,15 @@ export const rsvpRouter = createTRPCRouter({
               Rsvp: { [sortField]: sortOrder },
             };
 
-      const [users, totalCount] = await Promise.all([
+      const [
+        users,
+        totalCount,
+        allUsersCount,
+        rsvpCount,
+        positiveRsvpCount,
+        dietryReqCount,
+        extraInfoCount,
+      ] = await Promise.all([
         db.user.findMany({
           take: limit + 1,
           where: whereClause,
@@ -108,6 +121,13 @@ export const rsvpRouter = createTRPCRouter({
           },
         }),
         db.user.count({ where: whereClause }),
+        db.user.count({ where: { role: UserRole.GUEST } }),
+        db.rsvp.count(),
+        db.rsvp.count({ where: { isAttending: true } }),
+        db.rsvp.count({
+          where: { dietaryRequirements: { not: { equals: "" } } },
+        }),
+        db.rsvp.count({ where: { extraInfo: { not: { equals: "" } } } }),
       ]);
 
       const userRSVPs = users.map((user) => ({
@@ -122,6 +142,11 @@ export const rsvpRouter = createTRPCRouter({
         items: GuestRSVPSchema.array().parse(userRSVPs.slice(0, limit)),
         nextCursor: users[limit]?.id,
         totalCount,
+        allUsersCount,
+        rsvpCount,
+        positiveRsvpCount,
+        dietryReqCount,
+        extraInfoCount,
       };
     }),
   upsertGuestRSVP: protectedProcedure
