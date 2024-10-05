@@ -1,5 +1,4 @@
 import {
-  adminProcedure,
   createCallerFactory,
   createTRPCRouter,
   publicProcedure,
@@ -9,7 +8,6 @@ import { contentRouter } from "./routers/content";
 import { rsvpRouter } from "./routers/rsvp";
 import { emailRouter } from "./routers/email";
 import { db } from "../db";
-import { main as seed } from "@/../prisma/seed";
 
 /**
  * This is the primary router for your server.
@@ -29,10 +27,6 @@ export const appRouter = createTRPCRouter({
       console.error("Keep alive failed:", error);
       return { status: error };
     }
-  }),
-  seed: adminProcedure.mutation(async () => {
-    await seed();
-    return { status: "OK" };
   }),
 });
 
