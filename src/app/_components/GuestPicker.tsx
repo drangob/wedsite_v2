@@ -6,20 +6,50 @@ import { type FormEvent, type Key, useState } from "react";
 
 import { signIn } from "next-auth/react";
 import { useGuestsManagement } from "../_hooks/useGuestsManagement";
+import { api } from "@/trpc/react";
 
-export default function GuestPicker() {
+interface GuestPickerProps {
+  callbackUrl: string;
+  uid?: string;
+}
+
+export default function GuestPicker({
+  callbackUrl = "/",
+  uid,
+}: GuestPickerProps) {
   const { guests, isLoading, searchTerm, setSearchTerm } =
     useGuestsManagement();
+  const { data: uidExists } = api.user.uidExists.useQuery(
+    { uid: uid ?? "" },
+    { enabled: !!uid }, // Only run the query if uid is not null
+  );
 
   const [selectedUserId, setSelectedUserId] = useState<Key | null>();
   const [loggingIn, setLoggingIn] = useState(false);
+
+  const login = async (uid: string) => {
+    // combine callbackUrl with the current origin
+    const redirect = new URL(callbackUrl, window.location.origin);
+    // remove the uid query parameter
+    redirect.searchParams.delete("uid");
+    await signIn("guest-credentials", {
+      user_id: uid,
+      callbackUrl: redirect.href,
+    });
+  };
+
+  if (uid && uidExists) {
+    login(uid).catch((error) => {
+      console.error("Failed to sign in", error);
+    });
+  }
 
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
     if (selectedUserId) {
       setLoggingIn(true);
       try {
-        await signIn("guest-credentials", { user_id: selectedUserId });
+        await login(selectedUserId as string);
       } catch (error) {
         console.error("Failed to sign in", error);
         setLoggingIn(false);
