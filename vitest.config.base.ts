@@ -8,7 +8,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./setupTests.ts"],
     env: {
-      DATABASE_URL: "file:./db.sqlite",
+      DATABASE_URL: "postgresql://fakeuser:fakepassword@fakeurl/fakedb",
       NEXTAUTH_URL: "http://localhost:3000",
       DISCORD_CLIENT_ID: "fake_discord_client_id",
       DISCORD_CLIENT_SECRET: "fake_discord_client_secret",
