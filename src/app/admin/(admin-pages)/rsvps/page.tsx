@@ -33,6 +33,7 @@ import {
   useRSVPManagement,
 } from "@/app/_hooks/useRSVPManagement";
 import { CheckCircle, CircleHelp, XCircle } from "lucide-react";
+import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 
 const RSVPPage = () => {
   const {
@@ -50,7 +51,16 @@ const RSVPPage = () => {
     setSortOrder,
     filters,
     setFilters,
+    rsvpCount,
+    positiveRsvpCount,
+    dietaryRequirementsCount,
+    extraInfoCount,
+    allUsersCount,
   } = useRSVPManagement();
+  const [loaderRef, scrollerRef] = useInfiniteScroll({
+    hasMore: hasNextPage,
+    onLoadMore: fetchNextPage as () => void,
+  });
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedRSVP, setSelectedRSVP] = useState<GuestRSVP | null>(null);
@@ -143,11 +153,27 @@ const RSVPPage = () => {
           </Dropdown>
         </CardBody>
       </Card>
+      <Card>
+        <CardBody className="flex flex-row justify-between gap-2">
+          <div>
+            RSVPs received: {rsvpCount}/{allUsersCount}
+          </div>
+          <div>Attending: {positiveRsvpCount}</div>
+          <div>Dietary Reqs: {dietaryRequirementsCount}</div>
+          <div>Extra Info given: {extraInfoCount}</div>
+        </CardBody>
+      </Card>
+      <Card></Card>
 
       <Table
         aria-label="RSVP Table"
         onSortChange={sort}
         sortDescriptor={sortDescriptor}
+        baseRef={scrollerRef}
+        bottomContent={
+          hasNextPage && <Spinner ref={loaderRef} label="Loading more..." />
+        }
+        className="max-h-[85vh] min-w-full"
       >
         <TableHeader>
           <TableColumn key="name" allowsSorting className="w-2/6">
@@ -212,11 +238,6 @@ const RSVPPage = () => {
           )}
         </TableBody>
       </Table>
-      {!isLoading && !error && hasNextPage && (
-        <Button onClick={() => fetchNextPage()} className="mt-4">
-          Load More
-        </Button>
-      )}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           {(onClose) => (

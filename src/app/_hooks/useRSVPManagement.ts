@@ -64,6 +64,12 @@ export const useRSVPManagement = () => {
     });
   };
 
+  const rsvpCount = data?.pages?.[0]?.rsvpCount ?? 0;
+  const positiveRsvpCount = data?.pages?.[0]?.positiveRsvpCount ?? 0;
+  const dietaryRequirementsCount = data?.pages?.[0]?.dietryReqCount ?? 0;
+  const extraInfoCount = data?.pages?.[0]?.extraInfoCount ?? 0;
+  const allUsersCount = data?.pages?.[0]?.allUsersCount ?? 0;
+
   return {
     guestRSVPs,
     isLoading,
@@ -79,5 +85,10 @@ export const useRSVPManagement = () => {
     setSortOrder,
     filters,
     setFilters,
+    allUsersCount,
+    rsvpCount,
+    positiveRsvpCount,
+    dietaryRequirementsCount,
+    extraInfoCount,
   };
 };
