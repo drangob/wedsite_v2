@@ -173,7 +173,7 @@ const RSVPPage = () => {
         bottomContent={
           hasNextPage && <Spinner ref={loaderRef} label="Loading more..." />
         }
-        className="max-h-[85vh] min-w-full"
+        className="max-h-[82vh] min-w-full"
       >
         <TableHeader>
           <TableColumn key="name" allowsSorting className="w-2/6">
