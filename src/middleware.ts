@@ -9,6 +9,7 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
+        console.log("Authorized", token);
         return !!token;
       },
     },
@@ -19,5 +20,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login|admin).*)"],
 };
