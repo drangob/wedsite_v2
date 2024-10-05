@@ -147,10 +147,10 @@ export default function Content() {
         isOpen={deleteContentModalOpen}
         onClose={async () => {
           await refetchSlugs();
-          setSelectedSlug(undefined);
           setDeleteContentModalOpen(false);
         }}
         selectedSlug={selectedSlug!}
+        setSelectedSlug={setSelectedSlug}
       />
     </div>
   );
