@@ -35,10 +35,10 @@ const GuestsTable = ({
   });
 
   const columns = [
-    { key: "name", label: "Name", width: "w-1/4" },
-    { key: "email", label: "Email", width: "w-1/2" },
+    { key: "name", label: "Name", width: "w-2/8" },
+    { key: "email", label: "Email", width: "w-3/8" },
     { key: "group", label: "Group", width: "w-1/8" },
-    { key: "actions", label: "Actions", width: "w-1/8" },
+    { key: "actions", label: "Actions", width: "w-2/8" },
   ];
 
   const rows = guests.map((guest) => ({
@@ -47,7 +47,7 @@ const GuestsTable = ({
     email: guest.email,
     group: guest.group,
     actions: (
-      <div>
+      <div className="flex gap-1">
         <Button size="sm" color="primary" onPress={() => onEdit(guest)}>
           Edit
         </Button>
