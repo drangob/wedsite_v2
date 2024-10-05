@@ -1,15 +1,14 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 export default withAuth(
-  function middleware(req: NextRequest) {
+  function middleware() {
     // This function will only run for authenticated requests
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
+      authorized: ({ token }) => {
         return !!token;
       },
     },
