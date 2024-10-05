@@ -1,10 +1,12 @@
 import { getServerAuthSession } from "@/server/auth";
-import GuestPicker from "./_components/GuestPicker";
 import UserLogout from "./_components/UserLogout";
 import ContentCard from "./_components/ContentCard";
 
 export default async function Home() {
   const session = await getServerAuthSession();
+  if (!session) {
+    return null;
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#fef8ff] to-[#e0b2ff] text-black">
@@ -18,17 +20,11 @@ export default async function Home() {
           with you all.
         </p>
         <ContentCard slug="home" className="w-1/2" />
-        {session ? (
-          <div className="flex items-center gap-1">
-            <p>Welcome {session.user?.name}!</p>
-            <UserLogout />
-          </div>
-        ) : (
-          <div>
-            <p>Before you have a look around, who are you?</p>
-            <GuestPicker />
-          </div>
-        )}
+
+        <div className="flex items-center gap-1">
+          <p>Welcome {session.user?.name}!</p>
+          <UserLogout />
+        </div>
       </div>
     </main>
   );
