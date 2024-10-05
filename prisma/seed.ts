@@ -4,7 +4,7 @@ import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function main() {
   // Create admin user
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@example.com" },
