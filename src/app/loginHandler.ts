@@ -3,23 +3,26 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { api } from "@/trpc/react";
 
 const LoginHandler = () => {
   const searchParams = useSearchParams();
+  const uid = searchParams.get("uid");
+  const { data: uidExists } = api.user.uidExists.useQuery(
+    { uid: uid ?? "" },
+    { enabled: !!uid }, // Only run the query if uid is not null
+  );
 
   useEffect(() => {
-    const params = Object.fromEntries(searchParams.entries());
-
-    // Trigger functions based on query parameters
-    if (params.uid) {
-      login(params.uid);
+    if (uidExists && uid) {
+      login(uid);
     }
-  }, [searchParams]);
+  }, [uidExists, uid]);
 
   const login = (uid: string) => {
     const url = new URL(window.location.href);
     url.searchParams.delete("uid");
-    signIn("credentials", { user_id: uid, callbackUrl: url.href }).catch(
+    signIn("guest-credentials", { user_id: uid, callbackUrl: url.href }).catch(
       (error) => {
         console.error("Failed to sign in", error);
       },

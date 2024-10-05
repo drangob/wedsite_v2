@@ -4,7 +4,6 @@ import { GeistSans } from "geist/font/sans";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import LoginHandler from "./loginHandler";
-import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
@@ -22,10 +21,10 @@ export default function RootLayout({
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <Toaster />
-        <TRPCReactProvider>{children}</TRPCReactProvider>
-        <Suspense>
+        <TRPCReactProvider>
           <LoginHandler />
-        </Suspense>
+          {children}
+        </TRPCReactProvider>
       </body>
     </html>
   );
