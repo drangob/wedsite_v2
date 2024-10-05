@@ -12,6 +12,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+        playfair: ["var(--font-playfair)", ...fontFamily.serif],
       },
     },
   },
