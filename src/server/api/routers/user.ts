@@ -115,4 +115,17 @@ export const userRouter = createTRPCRouter({
       }),
     );
   }),
+
+  uidExists: publicProcedure
+    .input(z.object({ uid: z.string() }))
+    .query(async ({ input }) => {
+      const user = await db.user.findUnique({
+        where: {
+          id: input.uid,
+        },
+      });
+
+      const userExistsSchema = z.boolean();
+      return userExistsSchema.parse(!!user);
+    }),
 });
