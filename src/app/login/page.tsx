@@ -1,8 +1,6 @@
 import { getServerAuthSession } from "@/server/auth";
 import GuestPicker from "../_components/GuestPicker";
 import { type NextPage } from "next";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 
 function getQueryParams(partialUrl: string): Record<string, string> {
   // Construct a full URL by adding a dummy base
@@ -22,15 +20,12 @@ type PageProps = {
 };
 
 const Page: NextPage<PageProps> = async ({ searchParams }) => {
-  const session = await getServerAuthSession();
-  const callbackUrl = String(searchParams.callbackUrl);
-  // parse the callbackUrl
+  const callbackUrl = String(
+    searchParams.callbackUrl ? searchParams.callbackUrl : "/",
+  );
+
   const queryParams = getQueryParams(callbackUrl);
   const uid = queryParams.uid;
-
-  if (session) {
-    redirect(callbackUrl ? callbackUrl : "/");
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-gradient-to-b from-[#fef8ff] to-[#e0b2ff] text-black">

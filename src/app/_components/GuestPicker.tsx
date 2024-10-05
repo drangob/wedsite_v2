@@ -34,7 +34,7 @@ export default function GuestPicker({
     redirect.searchParams.delete("uid");
     await signIn("guest-credentials", {
       user_id: uid,
-      callbackUrl: redirect.href,
+      callbackUrl: redirect.href ?? "/",
     });
   };
 
