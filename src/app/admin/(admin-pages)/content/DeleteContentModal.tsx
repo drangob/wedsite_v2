@@ -13,18 +13,21 @@ interface NewContentModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedSlug: string;
+  setSelectedSlug: (slug: string | undefined) => void;
 }
 
 const DeleteContentModal = ({
   isOpen,
   onClose,
   selectedSlug,
+  setSelectedSlug,
 }: NewContentModalProps) => {
   const [disabled, setDisabled] = useState(false);
   const mutation = api.content.deleteContent.useMutation({
     onMutate: () => setDisabled(true),
     onSuccess: () => {
       toast.success("Content deleted successfully");
+      setSelectedSlug(undefined);
       onClose();
     },
     onError: (error) => {
