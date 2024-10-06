@@ -33,7 +33,7 @@ const Navigation: React.FC = () => {
     <>
       <div className="flex h-16 w-screen flex-col items-center justify-center">
         <h2 className="font-playfair text-3xl font-light tracking-wide text-emerald-800">
-          Thomas & Sarah
+          {process.env.NEXT_PUBLIC_COUPLE_NAME || "Wedding"}
         </h2>
       </div>
       <Navbar onMenuOpenChange={setIsMenuOpen}>

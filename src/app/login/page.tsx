@@ -32,7 +32,7 @@ const Page: NextPage<PageProps> = async ({ searchParams }) => {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-gradient-to-b from-[#fef8ff] to-[#e0b2ff] text-black">
       <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-        Thomas & <span>Sarah</span>&apos;s Wedding
+        {process.env.NEXT_PUBLIC_SITE_NAME}
       </h1>
       <div>
         {session && session.user.role !== "GUEST" ? (
