@@ -9,6 +9,8 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => {
+        // return false if the user is an admin - this will prevent them from accessing the frontend pages
+        if (token?.role === "ADMIN") return false;
         return !!token;
       },
     },
