@@ -14,6 +14,9 @@ export default {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
         playfair: ["var(--font-playfair)", ...fontFamily.serif],
       },
+      height: {
+        "screen-nav": "calc(100vh - 128px)",
+      },
     },
   },
   darkMode: "class",

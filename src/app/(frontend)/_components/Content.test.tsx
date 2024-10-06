@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import ContentCard from "./ContentCard";
+import Content from "./Content";
 
 import { api } from "@/trpc/react";
 
@@ -24,7 +24,7 @@ describe("ContentCard", () => {
       error: null,
     });
 
-    render(<ContentCard slug="test-slug" />);
+    render(<Content slug="test-slug" />);
     expect(screen.getByLabelText("Loading")).toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe("ContentCard", () => {
       error: null,
     });
 
-    render(<ContentCard slug="test-slug" />);
+    render(<Content slug="test-slug" />);
     expect(screen.getByText("Test content")).toBeInTheDocument();
   });
 
@@ -47,7 +47,7 @@ describe("ContentCard", () => {
       error: "error",
     });
 
-    render(<ContentCard slug="test-slug" />);
+    render(<Content slug="test-slug" />);
     expect(
       screen.getByText("Error loading content 'test-slug'"),
     ).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe("ContentCard", () => {
       error: null,
     });
 
-    render(<ContentCard slug="test-slug" className="test-class" />);
+    render(<Content slug="test-slug" className="test-class" />);
     expect(screen.getByText("Test").closest(".test-class")).toBeInTheDocument();
   });
 });
