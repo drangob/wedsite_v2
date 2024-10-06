@@ -1,3 +1,4 @@
+import { getServerAuthSession } from "@/server/auth";
 import GuestPicker from "../_components/GuestPicker";
 import { type NextPage } from "next";
 
@@ -19,6 +20,8 @@ type PageProps = {
 };
 
 const Page: NextPage<PageProps> = async ({ searchParams }) => {
+  const session = await getServerAuthSession();
+
   const callbackUrl = String(
     searchParams.callbackUrl ? searchParams.callbackUrl : "/",
   );
@@ -32,10 +35,17 @@ const Page: NextPage<PageProps> = async ({ searchParams }) => {
         Thomas & <span>Sarah</span>&apos;s Wedding
       </h1>
       <div>
-        <p>
-          Before you can a look around and learn more - we need to know, who are
-          you?
-        </p>
+        {session && session.user.role !== "GUEST" ? (
+          <p>
+            Hi, {session?.user.name}! You need to login as a guest to access the
+            site from their perspective.
+          </p>
+        ) : (
+          <p>
+            Before you can a look around and learn more - we need to know, who
+            are you?
+          </p>
+        )}
         <GuestPicker callbackUrl={callbackUrl} uid={uid} />
       </div>
     </main>
