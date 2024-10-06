@@ -98,4 +98,15 @@ export const contentRouter = createTRPCRouter({
       });
       return true;
     }),
+
+  contentExists: publicProcedure
+    .input(ContentSlugInput)
+    .query(async ({ input }) => {
+      const content = await db.content.findFirst({
+        where: {
+          slug: input.slug,
+        },
+      });
+      return !!content;
+    }),
 });
