@@ -152,14 +152,20 @@ export const rsvpRouter = createTRPCRouter({
   upsertGuestRSVP: protectedProcedure
     .input(
       z.object({
-        userId: z.string(),
+        userId: z.string().optional(),
         isAttending: z.boolean(),
         dietaryRequirements: z.string().optional(),
         extraInfo: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { userId, isAttending, dietaryRequirements, extraInfo } = input;
+      const {
+        userId: inputUserId,
+        isAttending,
+        dietaryRequirements,
+        extraInfo,
+      } = input;
+      const userId = inputUserId ?? ctx.session.user.id;
       const user = await db.user.findUnique({
         where: {
           id: userId,
@@ -196,4 +202,18 @@ export const rsvpRouter = createTRPCRouter({
 
       return RSVPSchema.parse(rsvp);
     }),
+  getGuestRSVP: protectedProcedure.query(async ({ ctx }) => {
+    const { id: userId } = ctx.session.user;
+    const rsvp = await db.rsvp.findUnique({
+      where: {
+        userId: userId,
+      },
+    });
+
+    if (!rsvp) {
+      return null;
+    }
+
+    return RSVPSchema.parse(rsvp);
+  }),
 });
