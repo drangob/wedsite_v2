@@ -61,7 +61,6 @@ const GuestsPage = () => {
   };
 
   const handleSubmitEdit = (guest: Guest) => {
-    console.log(guest);
     editGuest({
       id: guest.id,
       name: guest.name,
