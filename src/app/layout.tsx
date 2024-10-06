@@ -6,8 +6,9 @@ import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
-  title: "Thomas & Sarah Wedding",
-  description: "Thomas and Sarah's wedding website",
+  title: process.env.NEXT_PUBLIC_SITE_NAME || "Wedding",
+  description:
+    `${process.env.NEXT_PUBLIC_SITE_NAME} website` || "Wedding website",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
