@@ -50,7 +50,20 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ email, name }) => {
   }, [existingRsvp]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex w-full max-w-screen-lg flex-col gap-4">
+        <div className="flex animate-pulse flex-col gap-4">
+          <div className="flex animate-pulse flex-col gap-4 md:flex-row">
+            <div className="h-12 w-1/2 rounded bg-gray-300"></div>
+            <div className="h-12 w-1/2 rounded bg-gray-300"></div>
+          </div>
+          <div className="h-12 w-44 rounded bg-gray-300"></div>
+          <div className="h-24 rounded bg-gray-300"></div>
+          <div className="h-24 rounded bg-gray-300"></div>
+          <div className="h-12 rounded bg-gray-300"></div>
+        </div>
+      </div>
+    );
   }
   return (
     <div className="flex w-full max-w-screen-lg flex-col gap-4">
