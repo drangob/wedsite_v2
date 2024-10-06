@@ -3,7 +3,7 @@
 import { api } from "@/trpc/react";
 import React from "react";
 
-import { HTMLAttributes } from "react";
+import { type HTMLAttributes } from "react";
 
 interface ContentCardProps extends HTMLAttributes<HTMLDivElement> {
   slug: string;

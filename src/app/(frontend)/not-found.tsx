@@ -1,6 +1,6 @@
 const NotFound: React.FC = () => {
   return (
-    <div className="h-screen-nav flex flex-col items-center justify-center gap-10">
+    <div className="flex h-screen-nav flex-col items-center justify-center gap-10">
       <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
         404 - Page Not Found
       </h1>

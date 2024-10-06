@@ -1,4 +1,3 @@
-import { getServerAuthSession } from "@/server/auth";
 import GuestPicker from "../_components/GuestPicker";
 import { type NextPage } from "next";
 
