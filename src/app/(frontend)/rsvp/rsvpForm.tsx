@@ -14,11 +14,10 @@ import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 
 interface RsvpFormProps {
-  email: string;
   name: string;
 }
 
-const RsvpForm: React.FC<RsvpFormProps> = ({ email, name }) => {
+const RsvpForm: React.FC<RsvpFormProps> = ({ name }) => {
   const [isAttending, setIsAttending] = React.useState(true);
   const [dietaryRequirements, setDietaryRequirements] = React.useState("");
   const [extraInformation, setExtraInformation] = React.useState("");

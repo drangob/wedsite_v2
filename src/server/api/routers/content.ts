@@ -13,7 +13,8 @@ const ContentPieceSchema = z.object({
   html: z.string(),
   order: z.number(),
   layout: z.enum(["TEXT", "IMAGE_FIRST", "IMAGE_LAST"]),
-  image: z.string().optional(),
+  imageId: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
 });
 
 const ContentSchema = z.object({
@@ -54,9 +55,20 @@ export const contentRouter = createTRPCRouter({
         include: {
           ContentPieces: {
             orderBy: { order: "asc" },
+            include: {
+              image: true,
+            },
           },
         },
       });
+
+      // Map the content pieces to include imageUrl from the image
+      if (content) {
+        content.ContentPieces = content.ContentPieces.map((piece) => ({
+          ...piece,
+          imageUrl: piece.image?.url ?? null,
+        }));
+      }
       if (!content) {
         throw new Error("Content not found");
       }
@@ -93,7 +105,6 @@ export const contentRouter = createTRPCRouter({
           },
         },
       });
-      console.log(newContent);
       return ContentSchema.parse(newContent);
     }),
 
@@ -119,22 +130,18 @@ export const contentRouter = createTRPCRouter({
   contentExists: publicProcedure
     .input(z.string())
     .query(async ({ input: slug }) => {
-      console.log("input", slug);
       const content = await db.content.findFirst({
         where: {
           slug: slug,
         },
       });
-      console.log("content", content);
       return !!content;
     }),
 
   updateContentPiece: adminProcedure
     .input(ContentPieceSchema.omit({ order: true }))
     .mutation(async ({ input }) => {
-      console.log(input);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, image, layout, ...rest } = input;
+      const { id, layout, ...rest } = input;
       const layoutEnum = Layout[layout];
       if (!layoutEnum) {
         throw new Error(`Invalid layout value: ${input.layout}`);
@@ -203,4 +210,16 @@ export const contentRouter = createTRPCRouter({
       });
       return { success: true };
     }),
+  getAllImages: adminProcedure.query(async () => {
+    const images = await db.image.findMany();
+    return images;
+  }),
+  createImage: adminProcedure.input(z.string()).mutation(async ({ input }) => {
+    const image = await db.image.create({
+      data: {
+        url: input,
+      },
+    });
+    return image;
+  }),
 });
