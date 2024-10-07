@@ -15,7 +15,7 @@ const rsvp = async () => {
   return (
     <div className="flex w-full flex-col items-center px-4 py-8">
       {slugExists && <Content slug="rsvp" />}
-      <RsvpForm email={email} name={name} />
+      <RsvpForm name={name} />
     </div>
   );
 };

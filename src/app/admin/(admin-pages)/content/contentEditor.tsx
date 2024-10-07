@@ -5,6 +5,7 @@ import { Button, Card, CardBody, Radio, RadioGroup } from "@nextui-org/react";
 import React, { Fragment, lazy, Suspense, useEffect } from "react";
 import toast from "react-hot-toast";
 import { CirclePlusIcon, CircleStopIcon } from "lucide-react";
+import ImagePicker from "./imagePicker";
 
 const HTMLEditor = lazy(() => import("./HTMLEditor"));
 
@@ -21,12 +22,12 @@ const ContentPieceEditor: React.FC<{
     id: string;
     html: string;
     layout: layout;
-    image?: string;
+    imageId?: string | null;
   };
   refetchParent: () => void;
 }> = ({ contentPiece, refetchParent }) => {
   const [layout, setLayout] = React.useState(contentPiece.layout);
-  const [image] = React.useState(contentPiece.image);
+  const [imageId, setImageId] = React.useState(contentPiece.imageId);
   const [html, setHtml] = React.useState(contentPiece.html);
 
   const { mutate: update } = api.content.updateContentPiece.useMutation({
@@ -42,16 +43,16 @@ const ContentPieceEditor: React.FC<{
     if (
       contentPiece.html === html &&
       contentPiece.layout === layout &&
-      contentPiece.image === image
+      contentPiece.imageId === imageId
     )
       return;
     update({
       id: contentPiece.id,
       html: html,
       layout,
-      image,
+      imageId,
     });
-  }, [contentPiece, html, layout, image, update]);
+  }, [contentPiece, html, layout, imageId, update]);
 
   return (
     <Card>
@@ -77,9 +78,7 @@ const ContentPieceEditor: React.FC<{
           </RadioGroup>
         </div>
         {layout !== "TEXT" && (
-          <div>
-            <h3 className="text-lg">Pick Image</h3>
-          </div>
+          <ImagePicker imageId={imageId} setImageId={setImageId} />
         )}
       </CardBody>
     </Card>

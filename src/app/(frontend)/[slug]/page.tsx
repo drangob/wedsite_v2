@@ -9,7 +9,6 @@ interface ContentPageProps {
 const ContentPage: React.FC<ContentPageProps> = async ({ params }) => {
   // check that the slug is valid
   const slugExists = await api.content.contentExists(params.slug);
-  console.log("params.slug", params.slug);
   if (!slugExists) {
     notFound();
   }

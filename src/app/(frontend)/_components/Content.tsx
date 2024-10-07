@@ -11,20 +11,15 @@ interface ContentPieceProps {
     id: string;
     html: string;
     layout: "TEXT" | "IMAGE_FIRST" | "IMAGE_LAST";
-    image?: string;
+    imageUrl?: string | null;
   };
 }
 
 const ContentPiece: React.FC<ContentPieceProps> = ({ piece }) => {
-  const image = (
-    <img
-      alt="decorative"
-      src={
-        piece.image ??
-        "https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp"
-      }
-      className="w-full sm:w-1/2"
-    />
+  const image = piece.imageUrl ? (
+    <img alt="decorative" src={piece.imageUrl} className="w-full sm:w-1/2" />
+  ) : (
+    <div className="h-64 w-full bg-gray-300 sm:w-1/2"></div>
   );
   return (
     <div className="flex w-full max-w-screen-lg flex-col items-center gap-8 px-4 py-8 sm:flex-row">
