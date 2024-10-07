@@ -4,6 +4,8 @@ import { db } from "@/server/db";
 import formData from "form-data";
 import Mailgun, { type MailgunMessageData } from "mailgun.js";
 
+import { prepareEmailBody } from "@/utils/email";
+
 const mailgun = new Mailgun(formData);
 const mg = mailgun.client({
   username: "api",
@@ -164,6 +166,8 @@ export const emailRouter = createTRPCRouter({
         select: {
           to: {
             select: {
+              id: true,
+              name: true,
               email: true,
             },
           },
@@ -180,23 +184,27 @@ export const emailRouter = createTRPCRouter({
         throw new Error("No guest emails found");
       }
 
-      const emailAddresses = email.to
-        .map((to) => to.email)
-        .filter((email) => email !== null);
-
       const sentEmails = [];
       try {
         // send an email per guest
-        for (const emailAddress of emailAddresses) {
+        for (const recipient of email.to) {
+          if (!recipient.email || !recipient.name) {
+            continue;
+          }
           // Prepare email data
+          const emailBody = prepareEmailBody(email.body, {
+            name: recipient.name,
+            websiteUrl: `${process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com"}?uid=${recipient.id}`,
+            uid: recipient.id,
+          });
           const emailData: MailgunMessageData = {
             from: process.env.MAILGUN_SENDER_EMAIL ?? "",
-            to: emailAddress,
+            to: recipient.email,
             subject: email.subject,
-            html: email.body,
+            html: emailBody,
           };
           await mg.messages.create(process.env.MAILGUN_DOMAIN ?? "", emailData);
-          sentEmails.push(emailAddress);
+          sentEmails.push(recipient.email);
         }
         await db.email.update({
           where: {

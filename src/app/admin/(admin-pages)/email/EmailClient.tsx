@@ -8,10 +8,11 @@ import {
   CardFooter,
   Textarea,
 } from "@nextui-org/react";
-import { Send, User } from "lucide-react";
+import { Send, ShieldCheck, User } from "lucide-react";
 import { type Email } from "./page";
 import { useDebounce } from "use-debounce";
 import RecepientPickerModal from "./RecepientPickerModal";
+import PreviewModal from "./PreviewModal";
 
 interface EmailClientProps {
   email: Email | undefined;
@@ -27,6 +28,7 @@ const EmailClient: React.FC<EmailClientProps> = ({
   const [email, setEmail] = useState(selectedEmail);
   const [debouncedEmail] = useDebounce(email, 500);
   const [isRecepientPickerOpen, setIsRecepientPickerOpen] = useState(false);
+  const [isPreviewOpen, setPreviewOpen] = useState(false);
   const [to, setTo] = useState<string[]>(email?.to ?? []);
 
   useEffect(() => {
@@ -93,6 +95,10 @@ const EmailClient: React.FC<EmailClientProps> = ({
             disabled={email.sent}
             isDisabled={email.sent}
           />
+          <p className="font-mono text-xs">
+            Use `backticks` to substitute in user variables. Available: [`name`,
+            `websiteUrl`, `uid`]
+          </p>
           <Textarea
             label="Body:"
             variant="bordered"
@@ -108,7 +114,14 @@ const EmailClient: React.FC<EmailClientProps> = ({
             isDisabled={email.sent}
           />
         </CardBody>
-        <CardFooter className="flex flex-col items-end">
+        <CardFooter className="flex flex-row justify-end gap-2">
+          <Button
+            variant="ghost"
+            color="secondary"
+            onClick={() => setPreviewOpen(true)}
+          >
+            Preview <ShieldCheck />
+          </Button>
           <Button
             variant="ghost"
             color="primary"
@@ -133,6 +146,11 @@ const EmailClient: React.FC<EmailClientProps> = ({
         onClose={() => setIsRecepientPickerOpen(false)}
         setTo={setTo}
         to={to}
+      />
+      <PreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setPreviewOpen(false)}
+        emailBody={email.body}
       />
     </>
   );
