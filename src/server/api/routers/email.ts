@@ -180,25 +180,24 @@ export const emailRouter = createTRPCRouter({
         throw new Error("No guest emails found");
       }
 
-      const emails = email.to
+      const emailAddresses = email.to
         .map((to) => to.email)
         .filter((email) => email !== null);
 
-      // Prepare email data
-      const emailData: MailgunMessageData = {
-        from: process.env.MAILGUN_SENDER_EMAIL ?? "",
-        to: process.env.MAILGUN_SENDER_EMAIL,
-        bcc: emails,
-        subject: email.subject,
-        html: email.body,
-      };
-
-      // Send email using Mailgun
+      const sentEmails = [];
       try {
-        const result = await mg.messages.create(
-          process.env.MAILGUN_DOMAIN ?? "",
-          emailData,
-        );
+        // send an email per guest
+        for (const emailAddress of emailAddresses) {
+          // Prepare email data
+          const emailData: MailgunMessageData = {
+            from: process.env.MAILGUN_SENDER_EMAIL ?? "",
+            to: emailAddress,
+            subject: email.subject,
+            html: email.body,
+          };
+          await mg.messages.create(process.env.MAILGUN_DOMAIN ?? "", emailData);
+          sentEmails.push(emailAddress);
+        }
         await db.email.update({
           where: {
             id: input.id,
@@ -207,10 +206,14 @@ export const emailRouter = createTRPCRouter({
             sentAt: new Date(),
           },
         });
-        return { success: true, messageId: result.id };
       } catch (error) {
         console.error("Error sending email:", error);
-        throw new Error("Failed to send email");
+        console.log("Sent emails:", sentEmails);
+        throw new Error(
+          `Failed to send email. Sent emails: ${sentEmails.join(", ")}`,
+        );
       }
+
+      return { success: true };
     }),
 });
