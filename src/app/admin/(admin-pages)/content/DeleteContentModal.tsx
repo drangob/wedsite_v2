@@ -23,7 +23,7 @@ const DeleteContentModal = ({
   setSelectedSlug,
 }: NewContentModalProps) => {
   const [disabled, setDisabled] = useState(false);
-  const mutation = api.content.deleteContent.useMutation({
+  const { mutate } = api.content.deleteContent.useMutation({
     onMutate: () => setDisabled(true),
     onSuccess: () => {
       toast.success("Content deleted successfully");
@@ -36,10 +36,6 @@ const DeleteContentModal = ({
     onSettled: () => setDisabled(false),
   });
 
-  const handleSubmit = () => {
-    mutation.mutate({ slug: selectedSlug });
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalContent>
@@ -47,7 +43,11 @@ const DeleteContentModal = ({
         <ModalBody className="flex flex-row gap-2 pb-4">
           Clicking delete will permanently delete the content with the slug{" "}
           &apos;{selectedSlug}&apos;.
-          <Button isDisabled={disabled} color="danger" onClick={handleSubmit}>
+          <Button
+            isDisabled={disabled}
+            color="danger"
+            onClick={() => mutate(selectedSlug)}
+          >
             Delete
           </Button>
         </ModalBody>

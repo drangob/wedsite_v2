@@ -15,7 +15,11 @@ import { usePathname } from "next/navigation";
 
 import React from "react";
 
-const Navigation: React.FC = () => {
+interface NavigationProps {
+  dynamicEntries: { label: string; href: string }[];
+}
+
+const Navigation: React.FC<NavigationProps> = ({ dynamicEntries }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const pathname = usePathname();
@@ -24,16 +28,16 @@ const Navigation: React.FC = () => {
   };
 
   const menuItems = [
-    { label: "Home", href: "/", active: isActive("/") },
-    { label: "RSVP", href: "/rsvp", active: isActive("/rsvp") },
-    { label: "Contact Us", href: "/contact", active: isActive("/contact") },
+    { label: "Home", href: "/" },
+    { label: "RSVP", href: "/rsvp" },
+    ...dynamicEntries,
   ];
 
   return (
     <>
       <div className="flex h-16 w-screen flex-col items-center justify-center">
         <h2 className="font-playfair text-3xl font-light tracking-wide text-emerald-800">
-          {process.env.NEXT_PUBLIC_COUPLE_NAME || "Wedding"}
+          {process.env.NEXT_PUBLIC_COUPLE_NAME ?? "Wedding"}
         </h2>
       </div>
       <Navbar onMenuOpenChange={setIsMenuOpen}>
@@ -45,9 +49,15 @@ const Navigation: React.FC = () => {
         </NavbarContent>
 
         <NavbarContent className="hidden gap-4 sm:flex" justify="center">
-          {menuItems.map(({ label, href, active }, index) => (
-            <NavbarItem isActive={active} key={`full-${label}-${index}`}>
-              <Link color={active ? "primary" : "foreground"} href={href}>
+          {menuItems.map(({ label, href }, index) => (
+            <NavbarItem
+              isActive={isActive(href)}
+              key={`full-${label}-${index}`}
+            >
+              <Link
+                color={isActive(href) ? "primary" : "foreground"}
+                href={href}
+              >
                 {label}
               </Link>
             </NavbarItem>
@@ -66,10 +76,10 @@ const Navigation: React.FC = () => {
           </NavbarItem>
         </NavbarContent>
         <NavbarMenu className="top-[calc(var(--navbar-height)+64px)]">
-          {menuItems.map(({ label, href, active }, index) => (
+          {menuItems.map(({ label, href }, index) => (
             <NavbarMenuItem key={`mobile-${label}-${index}`}>
               <Link
-                color={active ? "primary" : "foreground"}
+                color={isActive(href) ? "primary" : "foreground"}
                 className="w-full"
                 href={href}
                 size="lg"

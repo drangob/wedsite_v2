@@ -64,7 +64,6 @@ model User {
   sessions                 Session[]
   role                     Role      @default(OTHER)
   Rsvp                     Rsvp?
-  ContentLastUpdatedByUser Content[]
   group                    Group     @default(DAY)
   receivedEmails           Email[]   @relation("EmailToUser")
 }
@@ -95,10 +94,39 @@ model Rsvp {
 model Content {
   id              String   @id @default(cuid())
   slug            String   @unique
-  html            String
+  title           String
   updatedAt       DateTime @updatedAt
-  updatedByUserId String
-  updatedBy       User     @relation(fields: [updatedByUserId], references: [id])
+  createdAt DateTime @default(now())
+  protected       Boolean
+  ContentPieces ContentPiece[]
+}
+
+enum Layout {
+  TEXT
+  IMAGE_FIRST
+  IMAGE_LAST
+}
+
+model ContentPiece {
+  id      String   @id @default(cuid())
+  html            String
+  order           Int
+  contentId       String
+  layout          Layout
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  imageId String?
+  image           Image? @relation(fields: [imageId], references: [id])
+  content         Content  @relation(fields: [contentId], references: [id])
+
+}
+
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ContentPieces ContentPiece[]
 }
 
 // Email

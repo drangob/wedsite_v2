@@ -50,7 +50,7 @@ describe("content router", () => {
     const ctx = await createTRPCContext({});
     const caller = createCaller(ctx);
 
-    const result = await caller.content.getAllContentSlugs();
+    const result = await caller.content.getAllContentInfo();
     expect(result).toEqual(["test-slug"]);
     expect(vi.mocked(db.content.findMany)).toHaveBeenCalledWith({
       select: { slug: true },

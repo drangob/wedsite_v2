@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Layout, PrismaClient } from "@prisma/client";
 import { Role, Group } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 
@@ -37,15 +37,80 @@ async function main() {
   }
 
   // Create some content
-  await prisma.content.upsert({
+  const home = await prisma.content.upsert({
     where: { slug: "home" },
     update: {},
     create: {
       slug: "home",
-      html: "<h1>Welcome to our wedding website!</h1>",
-      updatedByUserId: adminUser.id,
+      title: "Home",
+      protected: true,
     },
   });
+
+  await prisma.contentPiece.upsert({
+    where: {
+      id: `${home.id}-0`,
+    },
+    update: {},
+    create: {
+      id: `${home.id}-0`,
+      html: "<h1>Welcome to our wedding website</h1>",
+      order: 0,
+      layout: "TEXT",
+      content: { connect: { slug: "home" } },
+    },
+  });
+
+  const rsvp = await prisma.content.upsert({
+    where: { slug: "rsvp" },
+    update: {},
+    create: {
+      slug: "rsvp",
+      title: "RSVP",
+      protected: true,
+    },
+  });
+
+  await prisma.contentPiece.upsert({
+    where: {
+      id: `${rsvp.id}-0`,
+    },
+    update: {},
+    create: {
+      id: `${rsvp.id}-0`,
+      html: "<h1>RSVP</h1>",
+      order: 0,
+      layout: "TEXT",
+      content: { connect: { slug: "rsvp" } },
+    },
+  });
+
+  const contact = await prisma.content.upsert({
+    where: { slug: "contact" },
+    update: {},
+    create: {
+      slug: "contact",
+      title: "Contact Us",
+      protected: false,
+    },
+  });
+
+  const layouts: Layout[] = ["TEXT", "IMAGE_FIRST", "IMAGE_LAST"];
+  for (const [index, layout] of layouts.entries()) {
+    await prisma.contentPiece.upsert({
+      where: {
+        id: `${contact.id}-${index}`,
+      },
+      update: {},
+      create: {
+        id: `${contact.id}-${index}`,
+        html: faker.lorem.paragraph(),
+        order: index,
+        layout: layout,
+        content: { connect: { slug: "contact" } },
+      },
+    });
+  }
 
   // Create RSVPs for some guests
   const allGuests = await prisma.user.findMany({
