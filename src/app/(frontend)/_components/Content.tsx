@@ -23,13 +23,16 @@ const ContentPiece: React.FC<ContentPieceProps> = ({ piece }) => {
         piece.image ??
         "https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp"
       }
-      className="w-full"
+      className="w-full sm:w-1/2"
     />
   );
   return (
-    <div className="flex w-full max-w-screen-lg items-center gap-8 px-4 py-8">
+    <div className="flex w-full max-w-screen-lg flex-col items-center gap-8 px-4 py-8 sm:flex-row">
       {piece.layout === "IMAGE_FIRST" && image}
-      <div dangerouslySetInnerHTML={{ __html: piece.html }} />
+      <div
+        dangerouslySetInnerHTML={{ __html: piece.html }}
+        className={`w-full sm:${piece.layout !== "TEXT" ? "w-1/2" : "w-full"}`}
+      />
       {piece.layout === "IMAGE_LAST" && image}
     </div>
   );
