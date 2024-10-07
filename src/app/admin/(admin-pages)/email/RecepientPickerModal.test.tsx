@@ -6,7 +6,7 @@ import RecepientPickerModal from "./RecepientPickerModal";
 vi.mock("@/trpc/react", () => ({
   api: {
     user: {
-      getAllUsers: {
+      getAllGuests: {
         useQuery: vi.fn().mockReturnValue({
           data: [
             {

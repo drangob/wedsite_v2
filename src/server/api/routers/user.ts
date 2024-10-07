@@ -106,9 +106,12 @@ export const userRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  getAllUsers: adminProcedure.query(async () => {
+  getAllGuests: adminProcedure.query(async () => {
     return UserSchema.array().parseAsync(
       await db.user.findMany({
+        where: {
+          role: Role.GUEST,
+        },
         orderBy: {
           name: "asc",
         },

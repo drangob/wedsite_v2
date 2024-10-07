@@ -11,7 +11,7 @@ vi.mock("use-debounce", () => ({
 vi.mock("@/trpc/react", () => ({
   api: {
     user: {
-      getAllUsers: {
+      getAllGuests: {
         useQuery: vi.fn().mockReturnValue({
           data: [],
         }),

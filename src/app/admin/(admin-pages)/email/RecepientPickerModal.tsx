@@ -26,7 +26,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
   setTo,
   to = [],
 }) => {
-  const { data: guests = [] } = api.user.getAllUsers.useQuery();
+  const { data: guests = [] } = api.user.getAllGuests.useQuery();
   interface GuestSelection {
     guest: Guest;
     selected: boolean;
