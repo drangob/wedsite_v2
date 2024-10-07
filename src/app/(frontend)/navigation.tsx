@@ -35,7 +35,7 @@ const Navigation: React.FC<NavigationProps> = ({ dynamicEntries }) => {
 
   return (
     <>
-      <div className="flex h-16 w-screen flex-col items-center justify-center">
+      <div className="flex h-16 w-full flex-col items-center justify-center">
         <h2 className="font-playfair text-3xl font-light tracking-wide text-emerald-800">
           {process.env.NEXT_PUBLIC_COUPLE_NAME ?? "Wedding"}
         </h2>
