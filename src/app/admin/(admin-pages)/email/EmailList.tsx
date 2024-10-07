@@ -87,6 +87,7 @@ const EmailList: React.FC<EmailListProps> = ({
           isIconOnly
           onClick={deleteEmail}
           aria-label="Delete email"
+          isDisabled={!selectedEmail || selectedEmail.sent}
         >
           <CircleStopIcon />
         </Button>
