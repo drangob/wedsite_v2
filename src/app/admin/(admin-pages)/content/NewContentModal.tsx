@@ -17,7 +17,7 @@ interface NewContentModalProps {
 
 const NewContentModal = ({ isOpen, onClose }: NewContentModalProps) => {
   const [disabled, setDisabled] = useState(false);
-  const mutation = api.content.createContent.useMutation({
+  const { mutate } = api.content.createContent.useMutation({
     onMutate: () => setDisabled(true),
     onSuccess: () => {
       toast.success("Content created successfully");
@@ -29,22 +29,24 @@ const NewContentModal = ({ isOpen, onClose }: NewContentModalProps) => {
     onSettled: () => setDisabled(false),
   });
   const [slug, setSlug] = useState("");
-
-  const handleSubmit = () => {
-    mutation.mutate({ slug });
-  };
+  const [title, setTitle] = useState("");
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalContent>
         <ModalHeader>New Content</ModalHeader>
-        <ModalBody className="flex flex-row gap-2 pb-4">
+        <ModalBody className="flex flex-col gap-2 pb-4">
           <Input
             type="text"
             placeholder="Slug"
             onChange={(e) => setSlug(e.target.value)}
           />
-          <Button isDisabled={disabled} onClick={handleSubmit}>
+          <Input
+            type="text"
+            placeholder="Title"
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <Button isDisabled={disabled} onClick={() => mutate({ slug, title })}>
             Create
           </Button>
         </ModalBody>

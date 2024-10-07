@@ -4,7 +4,7 @@ import RsvpForm from "./rsvpForm";
 import { getServerAuthSession } from "@/server/auth";
 
 const rsvp = async () => {
-  const slugExists = await api.content.contentExists({ slug: "rsvp" });
+  const slugExists = await api.content.contentExists("rsvp");
   const session = await getServerAuthSession();
   const email = session?.user.email;
   const name = session?.user.name;

@@ -8,60 +8,23 @@ import {
   CardHeader,
   Select,
   SelectItem,
-  Spinner,
 } from "@nextui-org/react";
 
-const HTMLEditor = lazy(() => import("./HTMLEditor"));
-
-import React, { lazy, Suspense } from "react";
-import toast from "react-hot-toast";
+import React from "react";
 import NewContentModal from "./NewContentModal";
 import DeleteContentModal from "./DeleteContentModal";
-
-interface Content {
-  id: string;
-  slug: string;
-  html: string;
-}
+import ContentEditor from "./contentEditor";
 
 export default function Content() {
   const [newContentModalOpen, setNewContentModalOpen] = React.useState(false);
   const [deleteContentModalOpen, setDeleteContentModalOpen] =
     React.useState(false);
-  const { data: contentSlugs = [], refetch: refetchSlugs } =
-    api.content.getAllContentSlugs.useQuery();
   const [selectedSlug, setSelectedSlug] = React.useState<string>();
-  const updateContentMutation = api.content.updateContent.useMutation({
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const [selectedProtected, setSelectedProtected] =
+    React.useState<boolean>(false);
 
-  const {
-    data: fetchedContent,
-    refetch,
-    isLoading: contentLoading,
-    isRefetching: contentRefetching,
-  } = api.content.getContentBySlug.useQuery(
-    { slug: selectedSlug! },
-    { enabled: false }, // This prevents the query from running automatically
-  );
-
-  const loading = contentLoading || contentRefetching;
-
-  React.useEffect(() => {
-    if (selectedSlug) {
-      refetch()
-        .then()
-        .catch((e) => {
-          console.log(e);
-        });
-    }
-  }, [selectedSlug, refetch]);
-
-  if (!contentSlugs || contentSlugs.length === 0) {
-    return <Spinner />;
-  }
+  const { data: contents = [], refetch: refetchSlugs } =
+    api.content.getAllContentInfo.useQuery();
 
   const onSelectionChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = e.target?.value;
@@ -69,20 +32,11 @@ export default function Content() {
       return;
     }
     setSelectedSlug(selectedOption);
+    setSelectedProtected(
+      contents.find((c) => c.slug === selectedOption)!.protected,
+    );
   };
 
-  const onSave = async (data: string) => {
-    if (!fetchedContent) return;
-    const saving = toast.loading("Saving...");
-
-    updateContentMutation.mutate({
-      id: fetchedContent?.id,
-      slug: fetchedContent?.slug,
-      html: data,
-    });
-    toast.dismiss(saving);
-    toast.success("Saved");
-  };
   return (
     <div className="flex flex-col gap-2">
       <Card>
@@ -100,9 +54,9 @@ export default function Content() {
             onChange={onSelectionChange}
             selectedKeys={selectedSlug && [selectedSlug]}
           >
-            {contentSlugs?.map((slug) => (
+            {contents?.map(({ slug, title }) => (
               <SelectItem key={slug} value={slug}>
-                {slug}
+                {title}
               </SelectItem>
             ))}
           </Select>
@@ -111,31 +65,16 @@ export default function Content() {
           </Button>
           <Button
             color="danger"
-            disabled={!selectedSlug && !loading}
+            isDisabled={!selectedSlug || selectedProtected}
             onClick={() => setDeleteContentModalOpen(true)}
           >
             Delete
           </Button>
         </CardFooter>
       </Card>
-      {selectedSlug && (
-        <Card>
-          <CardBody>
-            {loading ? (
-              <Spinner />
-            ) : (
-              fetchedContent && (
-                <Suspense fallback={<Spinner />}>
-                  <HTMLEditor
-                    onSave={onSave}
-                    initialData={fetchedContent?.html}
-                  />
-                </Suspense>
-              )
-            )}
-          </CardBody>
-        </Card>
-      )}
+
+      {selectedSlug && <ContentEditor slug={selectedSlug} />}
+
       <NewContentModal
         isOpen={newContentModalOpen}
         onClose={async () => {
