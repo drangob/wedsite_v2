@@ -97,21 +97,6 @@ export const contentRouter = createTRPCRouter({
       return ContentSchema.parse(newContent);
     }),
 
-  updateContent: adminProcedure
-    .input(ContentSchema)
-    .mutation(async ({ input }) => {
-      const { id, ...rest } = input;
-      const updatedContent = await db.content.update({
-        where: {
-          id,
-        },
-        data: {
-          ...rest,
-        },
-      });
-      return ContentSchema.parse(updatedContent);
-    }),
-
   deleteContent: adminProcedure
     .input(z.string())
     .mutation(async ({ input: slug }) => {
