@@ -54,8 +54,7 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ email, name }) => {
       <div className="flex w-full max-w-screen-lg flex-col gap-4">
         <div className="flex animate-pulse flex-col gap-4">
           <div className="flex animate-pulse flex-col gap-4 md:flex-row">
-            <div className="h-12 w-1/2 rounded bg-gray-300"></div>
-            <div className="h-12 w-1/2 rounded bg-gray-300"></div>
+            <div className="h-12 w-full rounded bg-gray-300"></div>
           </div>
           <div className="h-12 w-44 rounded bg-gray-300"></div>
           <div className="h-24 rounded bg-gray-300"></div>
@@ -75,13 +74,6 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ email, name }) => {
               isDisabled
               value={name}
               label="Your name"
-              fullWidth
-            />
-            <Input
-              variant="bordered"
-              isDisabled
-              value={email}
-              label="Your email"
               fullWidth
             />
           </div>
