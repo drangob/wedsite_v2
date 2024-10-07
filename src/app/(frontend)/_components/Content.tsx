@@ -2,6 +2,7 @@
 "use client";
 
 import { api } from "@/trpc/react";
+import Image from "next/image";
 import React, { Fragment } from "react";
 
 import { type HTMLAttributes } from "react";
@@ -17,7 +18,14 @@ interface ContentPieceProps {
 
 const ContentPiece: React.FC<ContentPieceProps> = ({ piece }) => {
   const image = piece.imageUrl ? (
-    <img alt="decorative" src={piece.imageUrl} className="w-full sm:w-1/2" />
+    <Image
+      alt=""
+      width={800}
+      height={800}
+      sizes="(max-width: 640px) 100vw, 50vw"
+      src={piece.imageUrl}
+      className="w-full sm:w-1/2"
+    />
   ) : (
     <div className="h-64 w-full bg-gray-300 sm:w-1/2"></div>
   );
