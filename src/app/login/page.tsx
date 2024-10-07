@@ -1,6 +1,7 @@
 import { getServerAuthSession } from "@/server/auth";
 import GuestPicker from "../_components/GuestPicker";
 import { type NextPage } from "next";
+import { Fragment } from "react";
 
 function getQueryParams(partialUrl: string): Record<string, string> {
   // Construct a full URL by adding a dummy base
@@ -30,25 +31,31 @@ const Page: NextPage<PageProps> = async ({ searchParams }) => {
   const uid = queryParams.uid;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-gradient-to-b from-[#fef8ff] to-[#e0b2ff] text-black">
-      <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-        {process.env.NEXT_PUBLIC_SITE_NAME}
-      </h1>
-      <div>
-        {session && session.user.role !== "GUEST" ? (
-          <p>
-            Hi, {session?.user.name}! You need to login as a guest to access the
-            site from their perspective.
-          </p>
-        ) : (
-          <p>
-            Before you can a look around and learn more - we need to know, who
-            are you?
-          </p>
-        )}
-        <GuestPicker callbackUrl={callbackUrl} uid={uid} />
-      </div>
-    </main>
+    <Fragment>
+      <header>
+        <div className="flex h-16 w-full flex-col items-center justify-center">
+          <h2 className="font-playfair text-3xl font-light tracking-wide text-emerald-800">
+            {process.env.NEXT_PUBLIC_COUPLE_NAME ?? "Wedding"}
+          </h2>
+        </div>
+      </header>
+      <main className="flex min-h-96 flex-col items-center justify-center gap-10">
+        <div className="flex flex-col gap-8 p-4">
+          {session && session.user.role !== "GUEST" ? (
+            <p>
+              Hi, {session?.user.name}! You need to login as a guest to access
+              the site from their perspective.
+            </p>
+          ) : (
+            <p>
+              Before you can a look around and learn more - we need to know, who
+              are you?
+            </p>
+          )}
+          <GuestPicker callbackUrl={callbackUrl} uid={uid} />
+        </div>
+      </main>
+    </Fragment>
   );
 };
 
