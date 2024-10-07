@@ -31,7 +31,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({ imageId, setImageId }) => {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         <ModalContent>
           <ModalBody>
-            <div className="flex gap-1">
+            <div className="grid grid-cols-3 gap-1">
               {images?.map((image) => (
                 <Card key={image.id}>
                   <Image
