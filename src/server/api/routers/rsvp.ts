@@ -13,10 +13,12 @@ import { Prisma } from "@prisma/client";
 
 export const RSVPSchema = z.object({
   id: z.string(),
-  isAttending: z.boolean(),
   dietaryRequirements: z.string().optional(),
   extraInfo: z.string().optional(),
   updatedAt: z.date(),
+  guestNames: z.array(z.string()),
+  attendingGuestNames: z.array(z.string()),
+  nonAttendingGuestNames: z.array(z.string()),
 });
 
 export const GuestRSVPSchema = z.object({
@@ -71,7 +73,7 @@ export const rsvpRouter = createTRPCRouter({
                 AND: [
                   filters.isAttending === undefined
                     ? {}
-                    : { isAttending: filters.isAttending },
+                    : { attendingGuestNames: { isEmpty: filters.isAttending } },
                   filters.hasDietaryRequirements === undefined
                     ? {}
                     : filters.hasDietaryRequirements
@@ -123,7 +125,7 @@ export const rsvpRouter = createTRPCRouter({
         db.user.count({ where: whereClause }),
         db.user.count({ where: { role: UserRole.GUEST } }),
         db.rsvp.count(),
-        db.rsvp.count({ where: { isAttending: true } }),
+        db.rsvp.count({ where: { attendingGuestNames: { isEmpty: false } } }),
         db.rsvp.count({
           where: { dietaryRequirements: { not: { equals: "" } } },
         }),
@@ -153,7 +155,8 @@ export const rsvpRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string().optional(),
-        isAttending: z.boolean(),
+        attendingGuestNames: z.array(z.string()),
+        nonAttendingGuestNames: z.array(z.string()),
         dietaryRequirements: z.string().optional(),
         extraInfo: z.string().optional(),
       }),
@@ -161,7 +164,8 @@ export const rsvpRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const {
         userId: inputUserId,
-        isAttending,
+        attendingGuestNames,
+        nonAttendingGuestNames,
         dietaryRequirements,
         extraInfo,
       } = input;
@@ -188,19 +192,32 @@ export const rsvpRouter = createTRPCRouter({
           userId,
         },
         update: {
-          isAttending,
+          attendingGuestNames,
+          nonAttendingGuestNames,
           dietaryRequirements,
           extraInfo,
         },
         create: {
           userId,
-          isAttending,
+          attendingGuestNames,
+          nonAttendingGuestNames,
           dietaryRequirements,
           extraInfo,
         },
+        include: {
+          user: {
+            select: {
+              guestNames: true,
+            },
+          },
+        },
       });
 
-      return RSVPSchema.parse(rsvp);
+      const flattenedRsvp = {
+        ...rsvp,
+        guestNames: rsvp.user.guestNames,
+      };
+      return RSVPSchema.parse(flattenedRsvp);
     }),
   getGuestRSVP: protectedProcedure.query(async ({ ctx }) => {
     const { id: userId } = ctx.session.user;
@@ -208,12 +225,23 @@ export const rsvpRouter = createTRPCRouter({
       where: {
         userId: userId,
       },
+      include: {
+        user: {
+          select: {
+            guestNames: true,
+          },
+        },
+      },
     });
 
     if (!rsvp) {
       return null;
     }
 
-    return RSVPSchema.parse(rsvp);
+    const flattenedRsvp = {
+      ...rsvp,
+      guestNames: rsvp.user.guestNames,
+    };
+    return RSVPSchema.parse(flattenedRsvp);
   }),
 });

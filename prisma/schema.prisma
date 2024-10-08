@@ -83,7 +83,6 @@ model Rsvp {
   id                     String   @id @default(cuid())
   userId                 String   @unique
   user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isAttending            Boolean
   dietaryRequirements    String?
   extraInfo              String?
   attendingGuestNames    String[] @default([])

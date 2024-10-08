@@ -125,12 +125,24 @@ async function main() {
   for (const guest of allGuests) {
     if (faker.datatype.boolean(0.8)) {
       // Randomly decide whether to create RSVP
+      const shuffledGuestNames = faker.helpers.shuffle(guest.guestNames);
+      const attendingCount = faker.number.int({
+        min: 0,
+        max: shuffledGuestNames.length,
+      });
+      const attendingGuestNames = shuffledGuestNames.slice(0, attendingCount);
+      const nonAttendingGuestNames = shuffledGuestNames.slice(attendingCount);
+
       await prisma.rsvp.upsert({
         where: { userId: guest.id },
-        update: {},
+        update: {
+          attendingGuestNames: attendingGuestNames,
+          nonAttendingGuestNames: nonAttendingGuestNames,
+        },
         create: {
           userId: guest.id,
-          isAttending: faker.datatype.boolean(0.75),
+          attendingGuestNames: attendingGuestNames,
+          nonAttendingGuestNames: nonAttendingGuestNames,
           dietaryRequirements: faker.datatype.boolean(0.25)
             ? faker.helpers.arrayElement([
                 "None",
@@ -142,6 +154,10 @@ async function main() {
             : "",
           extraInfo: faker.datatype.boolean(0.25) ? faker.lorem.sentence() : "",
         },
+      });
+    } else {
+      await prisma.rsvp.deleteMany({
+        where: { userId: guest.id },
       });
     }
   }

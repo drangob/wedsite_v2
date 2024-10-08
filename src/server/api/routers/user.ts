@@ -134,4 +134,19 @@ export const userRouter = createTRPCRouter({
       const userExistsSchema = z.boolean();
       return userExistsSchema.parse(!!user);
     }),
+  getGuestNames: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input }) => {
+      const user = await db.user.findUnique({
+        where: {
+          id: input.userId,
+        },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return user.guestNames;
+    }),
 });
