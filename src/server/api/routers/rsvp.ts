@@ -174,20 +174,30 @@ export const rsvpRouter = createTRPCRouter({
         throw new Error("Unauthorized");
       }
 
+      // remove any names that are not in the guest list
+      // can happen if the user is updated to have less guests
+      const guestNames = user.guestNames;
+      const filteredAttending = attendingGuestNames.filter((name) =>
+        guestNames.includes(name),
+      );
+      const filteredNonAttending = nonAttendingGuestNames.filter((name) =>
+        guestNames.includes(name),
+      );
+
       const rsvp = await db.rsvp.upsert({
         where: {
           userId,
         },
         update: {
-          attendingGuestNames,
-          nonAttendingGuestNames,
+          attendingGuestNames: filteredAttending,
+          nonAttendingGuestNames: filteredNonAttending,
           dietaryRequirements,
           extraInfo,
         },
         create: {
           userId,
-          attendingGuestNames,
-          nonAttendingGuestNames,
+          attendingGuestNames: filteredAttending,
+          nonAttendingGuestNames: filteredNonAttending,
           dietaryRequirements,
           extraInfo,
         },
