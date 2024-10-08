@@ -73,7 +73,9 @@ export const rsvpRouter = createTRPCRouter({
                 AND: [
                   filters.isAttending === undefined
                     ? {}
-                    : { attendingGuestNames: { isEmpty: filters.isAttending } },
+                    : {
+                        attendingGuestNames: { isEmpty: !filters.isAttending },
+                      },
                   filters.hasDietaryRequirements === undefined
                     ? {}
                     : filters.hasDietaryRequirements
@@ -104,15 +106,7 @@ export const rsvpRouter = createTRPCRouter({
               Rsvp: { [sortField]: sortOrder },
             };
 
-      const [
-        users,
-        totalCount,
-        allUsersCount,
-        rsvpCount,
-        positiveRsvpCount,
-        dietryReqCount,
-        extraInfoCount,
-      ] = await Promise.all([
+      const [users, totalCount] = await Promise.all([
         db.user.findMany({
           take: limit + 1,
           where: whereClause,
@@ -123,13 +117,6 @@ export const rsvpRouter = createTRPCRouter({
           },
         }),
         db.user.count({ where: whereClause }),
-        db.user.count({ where: { role: UserRole.GUEST } }),
-        db.rsvp.count(),
-        db.rsvp.count({ where: { attendingGuestNames: { isEmpty: false } } }),
-        db.rsvp.count({
-          where: { dietaryRequirements: { not: { equals: "" } } },
-        }),
-        db.rsvp.count({ where: { extraInfo: { not: { equals: "" } } } }),
       ]);
 
       const userRSVPs = users.map((user) => ({
@@ -137,18 +124,18 @@ export const rsvpRouter = createTRPCRouter({
           ...user,
           Rsvp: undefined,
         },
-        rsvp: user.Rsvp ?? undefined,
+        rsvp: user.Rsvp
+          ? {
+              ...user.Rsvp,
+              guestNames: user.guestNames,
+            }
+          : undefined,
       }));
 
       return {
         items: GuestRSVPSchema.array().parse(userRSVPs.slice(0, limit)),
         nextCursor: users[limit]?.id,
         totalCount,
-        allUsersCount,
-        rsvpCount,
-        positiveRsvpCount,
-        dietryReqCount,
-        extraInfoCount,
       };
     }),
   upsertGuestRSVP: protectedProcedure
@@ -243,5 +230,108 @@ export const rsvpRouter = createTRPCRouter({
       guestNames: rsvp.user.guestNames,
     };
     return RSVPSchema.parse(flattenedRsvp);
+  }),
+  getToplineData: adminProcedure.query(async () => {
+    const [
+      guestUserCount,
+      rsvpCount,
+      dietryReqCount,
+      extraInfoCount,
+      totalGuestsCount,
+      attendingGuestCount,
+    ] = await Promise.all([
+      db.user.count({ where: { role: UserRole.GUEST } }),
+      db.rsvp.count(),
+      db.rsvp.count({
+        where: { dietaryRequirements: { not: { equals: "" } } },
+      }),
+      db.rsvp.count({ where: { extraInfo: { not: { equals: "" } } } }),
+      db.$queryRaw<{ total: bigint }[]>`
+        SELECT SUM(ARRAY_LENGTH("guestNames", 1)) as total
+        FROM "User";
+      `,
+      db.$queryRaw<{ total: number }[]>`
+        SELECT SUM(ARRAY_LENGTH("attendingGuestNames", 1)) as total
+        FROM "Rsvp";
+      `,
+    ]);
+    return {
+      guestUserCount,
+      rsvpCount,
+      dietryReqCount,
+      extraInfoCount,
+      totalGuestsCount: Number(totalGuestsCount[0]?.total ?? 0),
+      attendingGuestCount: Number(attendingGuestCount[0]?.total ?? 0),
+    };
+  }),
+
+  getCSV: adminProcedure.query(async () => {
+    const rsvps = await db.rsvp.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        user: { name: "asc" },
+      },
+    });
+
+    const usersWithOutRsvp = await db.user.findMany({
+      where: {
+        role: UserRole.GUEST,
+        NOT: {
+          Rsvp: {
+            userId: {
+              in: rsvps.map((rsvp) => rsvp.userId),
+            },
+          },
+        },
+      },
+      select: {
+        name: true,
+        email: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    const csv = [
+      [
+        "Name",
+        "Email",
+        "Responded",
+        "Attending Guests",
+        "Non Attending Guests",
+        "Dietary Requirements",
+        "Extra Info",
+      ],
+      ...rsvps.map((rsvp) => [
+        rsvp.user.name,
+        rsvp.user.email,
+        "Yes",
+        rsvp.attendingGuestNames.join(", "),
+        rsvp.nonAttendingGuestNames.join(", "),
+        rsvp.dietaryRequirements,
+        rsvp.extraInfo,
+      ]),
+      ...usersWithOutRsvp.map((user) => [
+        user.name,
+        user.email,
+        "No",
+        "",
+        "",
+        "",
+        "",
+      ]),
+    ]
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
+
+    return csv;
   }),
 });

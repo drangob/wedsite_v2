@@ -32,7 +32,7 @@ import {
   type SortField,
   useRSVPManagement,
 } from "@/app/_hooks/useRSVPManagement";
-import { CheckCircle, CircleHelp, XCircle } from "lucide-react";
+import { CheckCircle, CircleHelp, Download, XCircle } from "lucide-react";
 import { useInfiniteScroll } from "@nextui-org/use-infinite-scroll";
 
 const RSVPPage = () => {
@@ -52,10 +52,12 @@ const RSVPPage = () => {
     filters,
     setFilters,
     rsvpCount,
-    positiveRsvpCount,
     dietaryRequirementsCount,
     extraInfoCount,
     allUsersCount,
+    totalGuestsCount,
+    attendingGuestCount,
+    saveCSV,
   } = useRSVPManagement();
   const [loaderRef, scrollerRef] = useInfiniteScroll({
     hasMore: hasNextPage,
@@ -154,13 +156,18 @@ const RSVPPage = () => {
         </CardBody>
       </Card>
       <Card>
-        <CardBody className="flex flex-row justify-between gap-2">
+        <CardBody className="flex flex-row items-center justify-between gap-2">
           <div>
             RSVPs received: {rsvpCount}/{allUsersCount}
           </div>
-          <div>Attending: {positiveRsvpCount}</div>
+          <div>
+            Attending: {attendingGuestCount}/{totalGuestsCount}
+          </div>
           <div>Dietary Reqs: {dietaryRequirementsCount}</div>
           <div>Extra Info given: {extraInfoCount}</div>
+          <Button isIconOnly onClick={saveCSV}>
+            <Download />
+          </Button>
         </CardBody>
       </Card>
       <Card></Card>
@@ -228,7 +235,18 @@ const RSVPPage = () => {
               >
                 <TableCell>{rsvp.guest.name}</TableCell>
                 <TableCell>{getCheckmark(!!rsvp.rsvp?.id)}</TableCell>
-                <TableCell>{getCheckmark(rsvp.rsvp?.isAttending)}</TableCell>
+                <TableCell className="flex flex-row gap-4">
+                  {rsvp.rsvp ? (
+                    <>
+                      {getCheckmark(
+                        (rsvp.rsvp.attendingGuestNames.length ?? 0) > 0,
+                      )}
+                      {rsvp.rsvp.attendingGuestNames.length}/
+                      {rsvp.guest.guestNames.length}
+                    </>
+                  ) : null}
+                </TableCell>
+
                 <TableCell>
                   {getCheckmark(rsvp.rsvp?.dietaryRequirements)}
                 </TableCell>
@@ -273,7 +291,9 @@ const RSVPEditForm: React.FC<RSVPEditFormProps> = ({ guestRSVP, onSubmit }) => {
   const [formData, setFormData] = useState<RSVP>(
     guestRSVP?.rsvp ?? {
       id: "",
-      isAttending: false,
+      guestNames: [],
+      attendingGuestNames: guestRSVP?.guest.guestNames ?? [],
+      nonAttendingGuestNames: [],
       dietaryRequirements: "",
       extraInfo: "",
       updatedAt: new Date(),
@@ -290,38 +310,43 @@ const RSVPEditForm: React.FC<RSVPEditFormProps> = ({ guestRSVP, onSubmit }) => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | boolean,
-    name?: string,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    if (typeof e === "boolean") {
-      // Handle Switch change
-      setFormData((prev) => ({
-        ...prev,
-        [name!]: e,
-      }));
-    } else {
-      // Handle other input changes
-      const { name, value, type } = e.target;
-      setFormData((prev) => ({
-        ...prev,
-        [name]:
-          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-      }));
-    }
+    // Handle other input changes
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <Switch
-          name="isAttending"
-          isSelected={formData.isAttending}
-          onValueChange={(isSelected) =>
-            handleChange(isSelected, "isAttending")
-          }
-        >
-          Attending
-        </Switch>
+      <div className="mb-4 flex flex-col gap-4">
+        {guestRSVP?.guest.guestNames.map((guestName) => (
+          <Switch
+            key={guestName}
+            isSelected={formData.attendingGuestNames.includes(guestName)}
+            onValueChange={(value) => {
+              setFormData((prev) => ({
+                ...prev,
+                attendingGuestNames: value
+                  ? [...prev.attendingGuestNames, guestName]
+                  : prev.attendingGuestNames.filter(
+                      (name) => name !== guestName,
+                    ),
+                nonAttendingGuestNames: value
+                  ? prev.nonAttendingGuestNames.filter(
+                      (name) => name !== guestName,
+                    )
+                  : [...prev.nonAttendingGuestNames, guestName],
+              }));
+            }}
+          >
+            {guestName}
+          </Switch>
+        ))}
       </div>
       <div className="mb-4">
         <Textarea

@@ -12,7 +12,6 @@ import {
 } from "@nextui-org/react";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
-import { at } from "vitest/dist/chunks/reporters.WnPwkmgA.js";
 
 interface RsvpFormProps {
   name: string;
