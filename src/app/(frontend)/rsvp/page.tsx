@@ -12,10 +12,12 @@ const rsvp = async () => {
     return <div>Not authenticated</div>;
   }
 
+  const guests = await api.user.getGuestNames({ userId: session.user.id });
+
   return (
     <div className="flex w-full flex-col items-center px-4 py-8">
       {slugExists && <Content slug="rsvp" />}
-      <RsvpForm name={name} />
+      <RsvpForm name={name} guests={guests} />
     </div>
   );
 };

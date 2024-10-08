@@ -12,13 +12,17 @@ import {
 } from "@nextui-org/react";
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
+import { at } from "vitest/dist/chunks/reporters.WnPwkmgA.js";
 
 interface RsvpFormProps {
   name: string;
+  guests: string[];
 }
 
-const RsvpForm: React.FC<RsvpFormProps> = ({ name }) => {
-  const [isAttending, setIsAttending] = React.useState(true);
+const RsvpForm: React.FC<RsvpFormProps> = ({ name, guests }) => {
+  const [nameToAttending, setNameToAttending] = React.useState<
+    Record<string, boolean>
+  >(guests.reduce((acc, guest) => ({ ...acc, [guest]: true }), {}));
   const [dietaryRequirements, setDietaryRequirements] = React.useState("");
   const [extraInformation, setExtraInformation] = React.useState("");
 
@@ -40,13 +44,26 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ name }) => {
     },
   });
 
+  console.log(nameToAttending);
+
   useEffect(() => {
     if (existingRsvp) {
-      setIsAttending(existingRsvp.isAttending);
       setDietaryRequirements(existingRsvp.dietaryRequirements ?? "");
       setExtraInformation(existingRsvp.extraInfo ?? "");
+      existingRsvp.guestNames.forEach((guestName) => {
+        setNameToAttending((prev) => ({
+          ...prev,
+          [guestName]:
+            existingRsvp.attendingGuestNames.includes(guestName) ?? false,
+        }));
+      });
     }
   }, [existingRsvp]);
+
+  const guestCount = Object.keys(nameToAttending).length;
+  const allAttending = Object.values(nameToAttending).every(
+    (attending) => attending,
+  );
 
   if (isLoading) {
     return (
@@ -81,9 +98,40 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ name }) => {
           <div>Not you? Sign out to log in as someone else.</div>
         </PopoverContent>
       </Popover>
-      <Switch isSelected={isAttending} onValueChange={setIsAttending}>
-        {isAttending ? "I'll be there!" : "I can't make it"}
+      <Switch
+        isSelected={allAttending}
+        onValueChange={(value) =>
+          setNameToAttending((prev) => ({
+            ...Object.fromEntries(
+              Object.keys(prev).map((name) => [name, value]),
+            ),
+          }))
+        }
+      >
+        {guestCount > 1
+          ? allAttending
+            ? "We'll all be there!"
+            : "We can't all make it"
+          : allAttending
+            ? "I'll be there!"
+            : "I can't make it"}
       </Switch>
+      {guestCount > 1 &&
+        Object.entries(nameToAttending).map(([guestName, guestAttending]) => (
+          <Switch
+            size="sm"
+            key={guestName}
+            isSelected={guestAttending}
+            onValueChange={(value) =>
+              setNameToAttending((prev) => ({ ...prev, [guestName]: value }))
+            }
+          >
+            {guestAttending
+              ? `${guestName} will be there!`
+              : `${guestName} can't make it`}
+          </Switch>
+        ))}
+
       <Textarea
         variant="bordered"
         label="Dietary Requirements"
@@ -103,7 +151,12 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ name }) => {
         variant="flat"
         onClick={() =>
           upsertGuestRSVP({
-            isAttending,
+            attendingGuestNames: Object.entries(nameToAttending)
+              .filter(([, attending]) => attending)
+              .map(([name]) => name),
+            nonAttendingGuestNames: Object.entries(nameToAttending)
+              .filter(([, attending]) => !attending)
+              .map(([name]) => name),
             dietaryRequirements,
             extraInfo: extraInformation,
           })
