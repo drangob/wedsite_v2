@@ -1,4 +1,4 @@
-import { Layout, PrismaClient } from "@prisma/client";
+import { type Layout, PrismaClient } from "@prisma/client";
 import { Role, Group } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 
@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Create admin user
-  const adminUser = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "admin@example.com" },
     update: {},
     create: {
@@ -23,15 +23,20 @@ async function main() {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const name = `${firstName} ${lastName}`;
-    const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+    const email = faker.internet
+      .email({ firstName, lastName, provider: "example.com" })
+      .toLowerCase();
+
     await prisma.user.upsert({
-      where: { email: email },
+      where: { id: `guest${i}` },
       update: {},
       create: {
+        id: `guest${i}`,
         email: email,
         name: name,
         role: Role.GUEST,
         group: faker.helpers.arrayElement([Group.EVENING, Group.DAY]),
+        guestNames: [name, `${firstName}'s plus one`],
       },
     });
   }

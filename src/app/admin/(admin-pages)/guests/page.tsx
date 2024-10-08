@@ -26,13 +26,14 @@ const GuestsPage = () => {
 
   const [isCreateUpdateModalOpen, setIsCreateUpdateModalOpen] = useState(false);
   const [isDeletionModalOpen, setIsDeletionModalOpen] = useState(false);
-  const [createUpdateModalSubmitFunc, setModalSubmitFunc] =
+  const [modalSubmitFunc, setModalSubmitFunc] =
     useState<CreateUpdateModalSubmitHandler>(() => undefined);
   const [selectedGuest, setSelectedGuest] = useState<Guest>({
     id: "",
     name: "",
     email: "",
     group: "DAY",
+    guestNames: [],
   });
 
   if (error) return <div>Error: {error.message}</div>;
@@ -56,6 +57,7 @@ const GuestsPage = () => {
       name: newGuest.name,
       email: newGuest.email,
       group: newGuest.group,
+      guestNames: newGuest.guestNames,
     });
     setIsCreateUpdateModalOpen(false);
   };
@@ -66,12 +68,19 @@ const GuestsPage = () => {
       name: guest.name,
       email: guest.email,
       group: guest.group,
+      guestNames: guest.guestNames,
     });
     setIsCreateUpdateModalOpen(false);
   };
 
   const handleAddNew = () => {
-    setSelectedGuest({ id: "", name: "", email: "", group: "DAY" });
+    setSelectedGuest({
+      id: "",
+      name: "",
+      email: "",
+      group: "DAY",
+      guestNames: [""],
+    });
     setModalSubmitFunc(() => handleSubmitNew);
     setIsCreateUpdateModalOpen(true);
   };
@@ -110,7 +119,7 @@ const GuestsPage = () => {
       <CreateUpdateGuestModal
         isOpen={isCreateUpdateModalOpen}
         onClose={handleCloseCreateUpdateModal}
-        onSubmit={createUpdateModalSubmitFunc}
+        onSubmit={modalSubmitFunc}
         initialGuest={selectedGuest}
       />
       <GuestDeletionModal
