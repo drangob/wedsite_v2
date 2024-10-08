@@ -10,6 +10,7 @@ export interface Guest {
   name: string;
   email: string;
   group: "DAY" | "EVENING";
+  guestNames: string[];
 }
 
 export const useGuestsManagement = () => {

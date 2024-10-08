@@ -55,17 +55,18 @@ model Session {
 }
 
 model User {
-  id                       String    @id @default(cuid())
-  name                     String?
-  email                    String?   @unique
-  emailVerified            DateTime?
-  image                    String?
-  accounts                 Account[]
-  sessions                 Session[]
-  role                     Role      @default(OTHER)
-  Rsvp                     Rsvp?
-  group                    Group     @default(DAY)
-  receivedEmails           Email[]   @relation("EmailToUser")
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  role           Role      @default(OTHER)
+  Rsvp           Rsvp?
+  group          Group     @default(DAY)
+  receivedEmails Email[]   @relation("EmailToUser")
+  guestNames     String[]  @default([])
 }
 
 model VerificationToken {
@@ -79,25 +80,27 @@ model VerificationToken {
 // RSVP
 
 model Rsvp {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isAttending         Boolean
-  dietaryRequirements String?
-  extraInfo           String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isAttending            Boolean
+  dietaryRequirements    String?
+  extraInfo              String?
+  attendingGuestNames    String[] @default([])
+  nonAttendingGuestNames String[] @default([])
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 // Content
 
 model Content {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  title           String
-  updatedAt       DateTime @updatedAt
-  createdAt DateTime @default(now())
-  protected       Boolean
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  title         String
+  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime       @default(now())
+  protected     Boolean
   ContentPieces ContentPiece[]
 }
 
@@ -108,24 +111,23 @@ enum Layout {
 }
 
 model ContentPiece {
-  id      String   @id @default(cuid())
-  html            String
-  order           Int
-  contentId       String
-  layout          Layout
+  id        String   @id @default(cuid())
+  html      String
+  order     Int
+  contentId String
+  layout    Layout
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  imageId String?
-  image           Image? @relation(fields: [imageId], references: [id])
-  content         Content  @relation(fields: [contentId], references: [id])
-
+  imageId   String?
+  image     Image?   @relation(fields: [imageId], references: [id])
+  content   Content  @relation(fields: [contentId], references: [id])
 }
 
 model Image {
-  id        String   @id @default(cuid())
-  url       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  url           String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   ContentPieces ContentPiece[]
 }
 

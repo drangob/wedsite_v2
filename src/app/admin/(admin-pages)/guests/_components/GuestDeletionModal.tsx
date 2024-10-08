@@ -7,13 +7,7 @@ import {
   ModalFooter,
   Button,
 } from "@nextui-org/react";
-
-type Guest = {
-  id: string;
-  name: string;
-  email: string;
-  group: "DAY" | "EVENING";
-};
+import { type Guest } from "@/app/_hooks/useGuestsManagement";
 
 interface GuestDeletionModalProps {
   isOpen: boolean;

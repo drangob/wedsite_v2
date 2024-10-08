@@ -14,12 +14,14 @@ export const UserSchema = z.object({
   name: z.string(),
   email: z.string(),
   group: z.enum(["DAY", "EVENING"]),
+  guestNames: z.array(z.string()),
 });
 
 const CreateGuestSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   group: z.enum(["DAY", "EVENING"]),
+  guestNames: z.array(z.string()),
 });
 
 const UpdateGuestSchema = z.object({
@@ -27,6 +29,7 @@ const UpdateGuestSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   group: z.enum(["DAY", "EVENING"]),
+  guestNames: z.array(z.string()),
 });
 
 export const userRouter = createTRPCRouter({
