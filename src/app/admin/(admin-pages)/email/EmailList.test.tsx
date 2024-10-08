@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, type Mock, beforeEach } from "vitest";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render, fireEvent, screen, act } from "@testing-library/react";
 import EmailList from "./EmailList";
 import moment from "moment";
 
@@ -103,19 +103,28 @@ describe("EmailList", () => {
   });
 
   it("logs messages when add and delete buttons are clicked", () => {
-    render(
-      <EmailList
-        emails={mockEmails}
-        createEmail={createEmail}
-        deleteEmail={deleteEmail}
-        setSelectedEmail={setSelectedEmail}
-      />,
-    );
+    act(() => {
+      render(
+        <EmailList
+          emails={mockEmails}
+          selectedEmail={mockEmails[1]}
+          createEmail={createEmail}
+          deleteEmail={deleteEmail}
+          setSelectedEmail={setSelectedEmail}
+        />,
+      );
+    });
 
-    fireEvent.click(screen.getByLabelText("Add email"));
+    act(() => {
+      fireEvent.click(screen.getByLabelText("Add email"));
+    });
+
     expect(createEmail).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByLabelText("Delete email"));
+    act(() => {
+      fireEvent.click(screen.getByLabelText("Delete email"));
+    });
+
     expect(deleteEmail).toHaveBeenCalled();
   });
 });
