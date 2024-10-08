@@ -1,3 +1,5 @@
+"use client";
+
 import { api } from "@/trpc/react";
 import { useDebounce } from "use-debounce";
 import { useState } from "react";
@@ -41,9 +43,13 @@ export const useRSVPManagement = () => {
       { getNextPageParam: (lastPage) => lastPage.nextCursor },
     );
 
+  const { data: toplineData, refetch: refetchTopLineData } =
+    api.rsvp.getToplineData.useQuery();
+
   const commonMutationConfig = {
     onSuccess: async () => {
       await refetch();
+      await refetchTopLineData();
       toast.success("RSVP updated successfully");
     },
     onError: (error: TRPCClientErrorLike<typeof rsvpRouter>) =>
@@ -58,17 +64,35 @@ export const useRSVPManagement = () => {
   const upsertGuestRSVP = (guestRSVP: GuestRSVP) => {
     upsertGuestRSVPMutation.mutate({
       userId: guestRSVP.guest.id,
-      isAttending: guestRSVP.rsvp?.isAttending ?? false,
+      attendingGuestNames: guestRSVP.rsvp?.attendingGuestNames ?? [],
+      nonAttendingGuestNames: guestRSVP.rsvp?.nonAttendingGuestNames ?? [],
       dietaryRequirements: guestRSVP.rsvp?.dietaryRequirements ?? "",
       extraInfo: guestRSVP.rsvp?.extraInfo ?? "",
     });
   };
 
-  const rsvpCount = data?.pages?.[0]?.rsvpCount ?? 0;
-  const positiveRsvpCount = data?.pages?.[0]?.positiveRsvpCount ?? 0;
-  const dietaryRequirementsCount = data?.pages?.[0]?.dietryReqCount ?? 0;
-  const extraInfoCount = data?.pages?.[0]?.extraInfoCount ?? 0;
-  const allUsersCount = data?.pages?.[0]?.allUsersCount ?? 0;
+  const { refetch: fetchCSV } = api.rsvp.getCSV.useQuery(undefined, {
+    enabled: false,
+  });
+  const saveCSV = async () => {
+    const result = await fetchCSV();
+    const csv = result?.data;
+    if (!csv) return;
+    const blob = new Blob([csv], { type: "text/csv" });
+    console.log(blob);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rsvp.csv";
+    a.click();
+  };
+
+  const allUsersCount = toplineData?.guestUserCount ?? 0;
+  const rsvpCount = toplineData?.rsvpCount ?? 0;
+  const dietaryRequirementsCount = toplineData?.dietryReqCount ?? 0;
+  const extraInfoCount = toplineData?.extraInfoCount ?? 0;
+  const totalGuestsCount = toplineData?.totalGuestsCount ?? 0;
+  const attendingGuestCount = toplineData?.attendingGuestCount ?? 0;
 
   return {
     guestRSVPs,
@@ -87,8 +111,10 @@ export const useRSVPManagement = () => {
     setFilters,
     allUsersCount,
     rsvpCount,
-    positiveRsvpCount,
     dietaryRequirementsCount,
     extraInfoCount,
+    totalGuestsCount,
+    attendingGuestCount,
+    saveCSV,
   };
 };
