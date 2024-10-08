@@ -48,7 +48,6 @@ const GuestCreateUpdateModal: React.FC<GuestCreateUpdateModalProps> = ({
       const guestNames = [...guest.guestNames];
       guestNames[index] = value;
       setGuest({ ...guest, guestNames });
-      console.log(guest);
       return;
     }
     setGuest({ ...guest, [field]: value });

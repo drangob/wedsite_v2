@@ -44,8 +44,6 @@ const RsvpForm: React.FC<RsvpFormProps> = ({ name, guests }) => {
     },
   });
 
-  console.log(nameToAttending);
-
   useEffect(() => {
     if (existingRsvp) {
       setDietaryRequirements(existingRsvp.dietaryRequirements ?? "");

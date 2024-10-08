@@ -216,7 +216,6 @@ export const emailRouter = createTRPCRouter({
         });
       } catch (error) {
         console.error("Error sending email:", error);
-        console.log("Sent emails:", sentEmails);
         throw new Error(
           `Failed to send email. Sent emails: ${sentEmails.join(", ")}`,
         );
