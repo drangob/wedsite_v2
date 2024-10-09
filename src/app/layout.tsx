@@ -2,6 +2,8 @@ import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 
+import { Analytics } from "@vercel/analytics/react";
+
 import { TRPCReactProvider } from "@/trpc/react";
 import { Toaster } from "react-hot-toast";
 
@@ -20,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
+        <Analytics />
         <Toaster />
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
