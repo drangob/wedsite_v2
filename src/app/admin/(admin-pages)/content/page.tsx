@@ -13,6 +13,7 @@ import {
 import React from "react";
 import NewContentModal from "./_components/NewContentModal";
 import DeleteContentModal from "./_components/DeleteContentModal";
+
 import ContentEditor from "./ContentEditor";
 
 export default function Content() {
