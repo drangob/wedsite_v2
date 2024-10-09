@@ -128,7 +128,7 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
           model: "heading1",
           view: {
             name: "h1",
-            classes: "text-3xl",
+            classes: "text-cke-3xl",
           },
           title: "Heading 1",
           class: "ck-heading_heading1",
@@ -137,7 +137,7 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
           model: "heading2",
           view: {
             name: "h2",
-            classes: "text-2xl",
+            classes: "text-cke-2xl",
           },
           title: "Heading 2",
           class: "ck-heading_heading2",
@@ -146,7 +146,7 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
           model: "heading3",
           view: {
             name: "h3",
-            classes: "text-xl",
+            classes: "text-cke-xl",
           },
           title: "Heading 3",
           class: "ck-heading_heading3",
@@ -155,7 +155,7 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
           model: "heading4",
           view: {
             name: "h4",
-            classes: "text-lg",
+            classes: "text-cke-lg",
           },
           title: "Heading 4",
           class: "ck-heading_heading4",
