@@ -6,7 +6,7 @@ import {
   adminProcedure,
 } from "@/server/api/trpc";
 import { db } from "@/server/db";
-import { Layout } from "@prisma/client";
+import { Group, Layout } from "@prisma/client";
 
 const ContentPieceSchema = z.object({
   id: z.string(),
@@ -15,13 +15,16 @@ const ContentPieceSchema = z.object({
   layout: z.enum(["TEXT", "IMAGE_FIRST", "IMAGE_LAST"]),
   imageId: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  group: z.enum(Object.values(Group) as [Group, ...Group[]]).nullable(),
 });
 
 const ContentSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
+  protected: z.boolean(),
   ContentPieces: z.array(ContentPieceSchema),
+  group: z.enum(Object.values(Group) as [Group, ...Group[]]).nullable(),
 });
 
 const GetContentBySlugInput = z.object({
@@ -35,6 +38,9 @@ export const contentRouter = createTRPCRouter({
         slug: true,
         title: true,
         protected: true,
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
     const ContentInfoSchema = z.object({
@@ -222,4 +228,17 @@ export const contentRouter = createTRPCRouter({
     });
     return image;
   }),
+  updateContent: adminProcedure
+    .input(ContentSchema.omit({ ContentPieces: true }))
+    .mutation(async ({ input }) => {
+      await db.content.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          ...input,
+        },
+      });
+      return { success: true };
+    }),
 });
