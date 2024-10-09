@@ -31,8 +31,33 @@ const GetContentBySlugInput = z.object({
   slug: z.string(),
 });
 
+const getGroupFilter = async (userid?: string) => {
+  if (!userid) {
+    return { group: null };
+  }
+  const user = await db.user.findUnique({
+    where: {
+      id: userid,
+    },
+    select: {
+      group: true,
+      role: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const { group } = user;
+  const canAccessAllContent = user.role === "ADMIN";
+
+  return canAccessAllContent ? {} : { OR: [{ group: group }, { group: null }] };
+};
+
 export const contentRouter = createTRPCRouter({
-  getAllContentInfo: publicProcedure.query(async () => {
+  getAllContentInfo: publicProcedure.query(async ({ ctx }) => {
+    const groupFilter = await getGroupFilter(ctx.session?.user?.id);
     const content = await db.content.findMany({
       select: {
         slug: true,
@@ -41,6 +66,9 @@ export const contentRouter = createTRPCRouter({
       },
       orderBy: {
         createdAt: "asc",
+      },
+      where: {
+        ...groupFilter,
       },
     });
     const ContentInfoSchema = z.object({
@@ -53,13 +81,18 @@ export const contentRouter = createTRPCRouter({
 
   getContentBySlug: publicProcedure
     .input(GetContentBySlugInput)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      const groupFilter = await getGroupFilter(ctx.session?.user?.id);
       const content = await db.content.findFirst({
         where: {
           slug: input.slug,
+          ...groupFilter,
         },
         include: {
           ContentPieces: {
+            where: {
+              ...groupFilter,
+            },
             orderBy: { order: "asc" },
             include: {
               image: true,
