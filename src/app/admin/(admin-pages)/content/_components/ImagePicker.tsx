@@ -27,6 +27,17 @@ interface ImagePickerProps {
 const ImagePicker: React.FC<ImagePickerProps> = ({ imageId, setImageId }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const { data: images, refetch } = api.content.getAllImages.useQuery();
+  const { mutate: deleteImage } = api.content.deleteImage.useMutation({
+    onSuccess: () => {
+      toast.success("Image deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSettled: async () => {
+      await refetch();
+    },
+  });
   const currentImage = images?.find((image) => image.id === imageId);
 
   return (
@@ -73,7 +84,12 @@ const ImagePicker: React.FC<ImagePickerProps> = ({ imageId, setImageId }) => {
                         <CircleIcon />
                       )}
                     </Button>
-                    <Button isIconOnly size="sm" color="danger">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      color="danger"
+                      onClick={async () => deleteImage(image.id)}
+                    >
                       <CircleXIcon />
                     </Button>
                   </CardFooter>
