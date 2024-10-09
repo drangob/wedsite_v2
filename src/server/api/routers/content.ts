@@ -8,6 +8,8 @@ import {
 import { db } from "@/server/db";
 import { Group, Layout } from "@prisma/client";
 
+import { utapi } from "@/server/uploadthing";
+
 const ContentPieceSchema = z.object({
   id: z.string(),
   html: z.string(),
@@ -274,4 +276,35 @@ export const contentRouter = createTRPCRouter({
       });
       return { success: true };
     }),
+
+  deleteImage: adminProcedure.input(z.string()).mutation(async ({ input }) => {
+    const extractFileIdentifier = (url: string): string | null => {
+      const regex = /\/f\/([a-zA-Z0-9]+)/;
+      const match = url.match(regex);
+
+      if (match?.[1]) {
+        return match[1];
+      }
+
+      return null;
+    };
+    const deletedImage = await db.image.delete({
+      where: {
+        id: input,
+      },
+    });
+    const fileIdentifier = extractFileIdentifier(deletedImage.url);
+    if (!fileIdentifier) {
+      throw new Error("Couldn't delete from uploadthing");
+    }
+    if (fileIdentifier) {
+    }
+    const result = await utapi.deleteFiles(fileIdentifier);
+    console.log(result);
+    if (!result.success) {
+      throw new Error("Couldn't delete from uploadthing");
+    }
+
+    return { success: true };
+  }),
 });
