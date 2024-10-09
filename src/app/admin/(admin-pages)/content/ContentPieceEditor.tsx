@@ -69,33 +69,39 @@ const ContentPieceEditor: React.FC<ContentPieceEditorProps> = ({
           }}
           initialData={html}
         />
-        <GroupPicker
-          group={group}
-          setGroup={setGroup}
-          shadow="none"
-          className={
-            parentGroup !== group && group !== null ? "bg-red-200" : ""
-          }
-        />
-        <Card shadow="none">
-          <CardBody>
-            <h3 className="text-lg">Pick layout</h3>
-            <RadioGroup
-              orientation="horizontal"
-              value={layout}
-              onValueChange={(value) => {
-                setLayout(value as layout);
-              }}
-            >
-              <Radio value="TEXT">Text</Radio>
-              <Radio value="IMAGE_FIRST">Image first</Radio>
-              <Radio value="IMAGE_LAST">Image last</Radio>
-            </RadioGroup>
-          </CardBody>
-        </Card>
-        {layout !== "TEXT" && (
-          <ImagePicker imageId={imageId} setImageId={setImageId} />
-        )}
+        <div className="flex flex-col justify-between sm:flex-row">
+          <div>
+            <GroupPicker
+              group={group}
+              setGroup={setGroup}
+              shadow="none"
+              className={
+                parentGroup !== group && group !== null ? "bg-red-200" : ""
+              }
+            />
+            <Card shadow="none">
+              <CardBody>
+                <h3 className="text-lg">Pick layout</h3>
+                <RadioGroup
+                  orientation="horizontal"
+                  value={layout}
+                  onValueChange={(value) => {
+                    setLayout(value as layout);
+                  }}
+                >
+                  <Radio value="TEXT">Text</Radio>
+                  <Radio value="IMAGE_FIRST">Image first</Radio>
+                  <Radio value="IMAGE_LAST">Image last</Radio>
+                </RadioGroup>
+              </CardBody>
+            </Card>
+          </div>
+          <div>
+            {layout !== "TEXT" && (
+              <ImagePicker imageId={imageId} setImageId={setImageId} />
+            )}
+          </div>
+        </div>
       </CardBody>
     </Card>
   );
