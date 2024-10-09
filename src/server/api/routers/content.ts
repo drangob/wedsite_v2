@@ -8,6 +8,8 @@ import {
 import { db } from "@/server/db";
 import { Group, Layout } from "@prisma/client";
 
+import { substituteContentHtml } from "@/utils/content";
+
 import { utapi } from "@/server/uploadthing";
 
 const ContentPieceSchema = z.object({
@@ -57,6 +59,35 @@ const getGroupFilter = async (userid?: string) => {
   return canAccessAllContent ? {} : { OR: [{ group: group }, { group: null }] };
 };
 
+const getContentVariables = async (
+  userid?: string,
+): Promise<Record<string, string>> => {
+  if (!userid) {
+    return {};
+  }
+  const user = await db.user.findUnique({
+    where: {
+      id: userid,
+    },
+    select: {
+      group: true,
+      role: true,
+      name: true,
+      email: true,
+    },
+  });
+
+  if (!user || user?.role === "ADMIN") {
+    return {};
+  }
+
+  return {
+    group: user.group.toLowerCase(),
+    name: user.name ?? "",
+    email: user.email ?? "",
+  };
+};
+
 export const contentRouter = createTRPCRouter({
   getAllContentInfo: publicProcedure.query(async ({ ctx }) => {
     const groupFilter = await getGroupFilter(ctx.session?.user?.id);
@@ -85,6 +116,7 @@ export const contentRouter = createTRPCRouter({
     .input(GetContentBySlugInput)
     .query(async ({ input, ctx }) => {
       const groupFilter = await getGroupFilter(ctx.session?.user?.id);
+      const userVariables = await getContentVariables(ctx.session?.user?.id);
       const content = await db.content.findFirst({
         where: {
           slug: input.slug,
@@ -107,6 +139,7 @@ export const contentRouter = createTRPCRouter({
       if (content) {
         content.ContentPieces = content.ContentPieces.map((piece) => ({
           ...piece,
+          html: substituteContentHtml(piece.html, userVariables),
           imageUrl: piece.image?.url ?? null,
         }));
       }

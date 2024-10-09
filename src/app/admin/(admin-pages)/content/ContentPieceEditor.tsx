@@ -63,6 +63,14 @@ const ContentPieceEditor: React.FC<ContentPieceEditorProps> = ({
   return (
     <Card>
       <CardBody className="flex flex-col gap-4">
+        <div className="font-mono text-xs">
+          <p>You can use `variable` to substitute variables in the content.</p>
+          <p>
+            For example, you can write &apos;Hello `name`!&apos; and it will be
+            substituted with &apos;Hello John!&apos;.
+          </p>
+          <p>Available variables are `name`, `email`, `group` (day/evening).</p>
+        </div>
         <HTMLEditor
           onSave={async (data: string) => {
             setHtml(data);
