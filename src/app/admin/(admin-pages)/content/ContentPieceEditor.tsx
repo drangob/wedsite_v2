@@ -76,7 +76,9 @@ const ContentPieceEditor: React.FC<ContentPieceEditorProps> = ({
               setGroup={setGroup}
               shadow="none"
               className={
-                parentGroup !== group && group !== null ? "bg-red-200" : ""
+                !!parentGroup && !!group && parentGroup !== group
+                  ? "bg-red-200"
+                  : ""
               }
             />
             <Card shadow="none">
