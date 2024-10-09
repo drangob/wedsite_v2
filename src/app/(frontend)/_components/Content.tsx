@@ -3,6 +3,7 @@
 
 import { api } from "@/trpc/react";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 import React, { Fragment } from "react";
 
 import { type HTMLAttributes } from "react";
@@ -69,9 +70,16 @@ interface ContentProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Content = ({ slug }: ContentProps) => {
-  const { data } = api.content.getContentBySlug.useQuery({
-    slug,
-  });
+  const { data, error } = api.content.getContentBySlug.useQuery(
+    {
+      slug,
+    },
+    { retry: false },
+  );
+
+  if (error) {
+    return notFound();
+  }
 
   const pieces = data?.ContentPieces ?? [];
 
