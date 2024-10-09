@@ -3,9 +3,10 @@ import { Card, CardBody, Radio, RadioGroup } from "@nextui-org/react";
 import { api } from "@/trpc/react";
 import toast from "react-hot-toast";
 import { type Group } from "@prisma/client";
-import HTMLEditor from "./_components/HTMLEditor";
 import GroupPicker from "./_components/GroupPicker";
 import ImagePicker from "./_components/ImagePicker";
+
+const HTMLEditor = React.lazy(() => import("./_components/HTMLEditor"));
 
 type layout = "TEXT" | "IMAGE_FIRST" | "IMAGE_LAST";
 
