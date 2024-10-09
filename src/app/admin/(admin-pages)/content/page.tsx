@@ -11,9 +11,9 @@ import {
 } from "@nextui-org/react";
 
 import React from "react";
-import NewContentModal from "./NewContentModal";
-import DeleteContentModal from "./DeleteContentModal";
-import ContentEditor from "./contentEditor";
+import NewContentModal from "./_components/NewContentModal";
+import DeleteContentModal from "./_components/DeleteContentModal";
+import ContentEditor from "./ContentEditor";
 
 export default function Content() {
   const [newContentModalOpen, setNewContentModalOpen] = React.useState(false);
