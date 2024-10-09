@@ -1,13 +1,59 @@
 "use client";
 
 import { api } from "@/trpc/react";
-import { Button, Card, CardBody, Radio, RadioGroup } from "@nextui-org/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Radio,
+  RadioGroup,
+  type CardProps,
+} from "@nextui-org/react";
 import React, { Fragment, lazy, Suspense, useEffect } from "react";
 import toast from "react-hot-toast";
 import { CirclePlusIcon, CircleStopIcon } from "lucide-react";
 import ImagePicker from "./imagePicker";
 
+import { type Group } from "@prisma/client";
+
 const HTMLEditor = lazy(() => import("./HTMLEditor"));
+
+interface GroupPickerProps extends CardProps {
+  setGroup: (group: Group | null) => void;
+  group: Group | null;
+  isDisabled?: boolean;
+}
+
+const GroupPicker: React.FC<GroupPickerProps> = ({
+  setGroup,
+  group,
+  isDisabled,
+  ...props
+}) => {
+  return (
+    <Card {...props}>
+      <CardBody>
+        <h3 className="text-lg">Pick group</h3>
+        <RadioGroup
+          orientation="horizontal"
+          value={group ?? ""}
+          onValueChange={(value) => {
+            if (value === "") {
+              setGroup(null);
+            } else {
+              setGroup(value as Group);
+            }
+          }}
+          isDisabled={isDisabled}
+        >
+          <Radio value="">No</Radio>
+          <Radio value="DAY">Day</Radio>
+          <Radio value="EVENING">Evening</Radio>
+        </RadioGroup>
+      </CardBody>
+    </Card>
+  );
+};
 
 const Shimmer = () => (
   <Card className="h-24 animate-pulse bg-gray-300">
@@ -23,12 +69,17 @@ const ContentPieceEditor: React.FC<{
     html: string;
     layout: layout;
     imageId?: string | null;
+    group: string | null;
   };
   refetchParent: () => void;
-}> = ({ contentPiece, refetchParent }) => {
+  parentGroup: string | null;
+}> = ({ contentPiece, refetchParent, parentGroup }) => {
   const [layout, setLayout] = React.useState(contentPiece.layout);
   const [imageId, setImageId] = React.useState(contentPiece.imageId);
   const [html, setHtml] = React.useState(contentPiece.html);
+  const [group, setGroup] = React.useState<Group | null>(
+    (contentPiece.group as Group) || null,
+  );
 
   const { mutate: update } = api.content.updateContentPiece.useMutation({
     onSuccess: () => {
@@ -43,7 +94,8 @@ const ContentPieceEditor: React.FC<{
     if (
       contentPiece.html === html &&
       contentPiece.layout === layout &&
-      contentPiece.imageId === imageId
+      contentPiece.imageId === imageId &&
+      contentPiece.group === group
     )
       return;
     update({
@@ -51,8 +103,9 @@ const ContentPieceEditor: React.FC<{
       html: html,
       layout,
       imageId,
+      group: group,
     });
-  }, [contentPiece, html, layout, imageId, update]);
+  }, [contentPiece, html, layout, imageId, update, group]);
 
   return (
     <Card>
@@ -63,20 +116,30 @@ const ContentPieceEditor: React.FC<{
           }}
           initialData={html}
         />
-        <div>
-          <h3 className="text-lg">Pick layout</h3>
-          <RadioGroup
-            orientation="horizontal"
-            value={layout}
-            onValueChange={(value) => {
-              setLayout(value as layout);
-            }}
-          >
-            <Radio value="TEXT">Text</Radio>
-            <Radio value="IMAGE_FIRST">Image first</Radio>
-            <Radio value="IMAGE_LAST">Image last</Radio>
-          </RadioGroup>
-        </div>
+        <GroupPicker
+          group={group}
+          setGroup={setGroup}
+          shadow="none"
+          className={
+            parentGroup !== group && group !== null ? "bg-red-200" : ""
+          }
+        />
+        <Card shadow="none">
+          <CardBody>
+            <h3 className="text-lg">Pick layout</h3>
+            <RadioGroup
+              orientation="horizontal"
+              value={layout}
+              onValueChange={(value) => {
+                setLayout(value as layout);
+              }}
+            >
+              <Radio value="TEXT">Text</Radio>
+              <Radio value="IMAGE_FIRST">Image first</Radio>
+              <Radio value="IMAGE_LAST">Image last</Radio>
+            </RadioGroup>
+          </CardBody>
+        </Card>
         {layout !== "TEXT" && (
           <ImagePicker imageId={imageId} setImageId={setImageId} />
         )}
@@ -107,17 +170,39 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ slug }) => {
   const { mutate: popContentPiece } = api.content.popContentPiece.useMutation({
     ...commonMutationOptions,
   });
+  const { mutate: updateContent } = api.content.updateContent.useMutation(
+    commonMutationOptions,
+  );
+
+  const [group, setGroup] = React.useState<Group | null>(data?.group ?? null);
+
+  useEffect(() => {
+    if (data?.group !== group) {
+      setGroup(data?.group ?? null);
+    }
+  }, [data, group]);
 
   if (!data) {
     return <Shimmer />;
   }
   return (
     <Fragment>
+      {!data.protected && (
+        <GroupPicker
+          setGroup={(g) => {
+            setGroup(g);
+            updateContent({ ...data, group: g });
+          }}
+          group={group}
+          isDisabled={data.protected}
+        />
+      )}
       {ContentPieces.map((contentPiece) => (
         <Suspense key={contentPiece.id} fallback={<Shimmer />}>
           <ContentPieceEditor
             contentPiece={contentPiece}
             refetchParent={refetch}
+            parentGroup={group}
           />
         </Suspense>
       ))}

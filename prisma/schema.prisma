@@ -101,6 +101,7 @@ model Content {
   createdAt     DateTime       @default(now())
   protected     Boolean
   ContentPieces ContentPiece[]
+  group         Group?
 }
 
 enum Layout {
@@ -120,6 +121,7 @@ model ContentPiece {
   imageId   String?
   image     Image?   @relation(fields: [imageId], references: [id])
   content   Content  @relation(fields: [contentId], references: [id])
+  group     Group?
 }
 
 model Image {
