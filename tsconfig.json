@@ -41,5 +41,5 @@
     ".next/types/**/*.ts",
     "vitest.config.base.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "__next_data_cache_handler.js"]
 }
