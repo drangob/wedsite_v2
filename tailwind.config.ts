@@ -14,6 +14,7 @@ export default withUt({
       fontFamily: {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
         playfair: ["var(--font-playfair)", ...fontFamily.serif],
+        lora: ["var(--font-lora)", ...fontFamily.serif],
       },
       height: {
         "screen-nav": "calc(100vh - 128px)",
