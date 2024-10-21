@@ -17,7 +17,7 @@ export default async function Home() {
              bg-blend-overlay sm:min-h-[40rem]"
       >
         <div
-          className="z-5 absolute inset-0 bg-gradient-to-b from-amber-200/50 to-blue-200/50"
+          className="z-5 absolute inset-0 bg-gradient-to-b from-blush-500/60 to-ivory-500/60"
           aria-hidden="true"
         ></div>
         <h1 className="relative z-10 max-w-[30rem] text-center font-lora text-5xl font-extrabold italic tracking-wide sm:max-w-[40rem] sm:text-[5rem]">
