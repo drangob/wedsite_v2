@@ -35,6 +35,7 @@ import {
   Undo,
   type EditorConfig,
   SourceEditing,
+  Alignment,
 } from "ckeditor5";
 
 import "ckeditor5/ckeditor5.css";
@@ -60,29 +61,28 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
   const editorConfig: EditorConfig = {
     toolbar: {
       items: [
-        "sourceEditing",
-        "|",
         "undo",
         "redo",
         "|",
-        "showBlocks",
-        "selectAll",
-        "|",
         "heading",
         "|",
+        "fontFamily",
         "fontColor",
-        "fontBackgroundColor",
+        "fontSize",
         "|",
         "bold",
         "italic",
         "removeFormat",
         "|",
+        "alignment",
+        "|",
         "link",
         "insertTable",
-        "htmlEmbed",
         "|",
         "bulletedList",
         "numberedList",
+        "|",
+        "sourceEditing",
       ],
       shouldNotGroupWhenFull: false,
     },
@@ -116,6 +116,7 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
       TableToolbar,
       Undo,
       SourceEditing,
+      Alignment,
     ],
     heading: {
       options: [
@@ -207,6 +208,36 @@ export default function HTMLEditor({ initialData, onSave }: HTMLEditorProps) {
       save(editor) {
         return onSave(editor.getData());
       },
+    },
+    fontFamily: {
+      options: ["default", "Playfair, serif", "Lora, serif"],
+    },
+    fontColor: {
+      colors: [
+        {
+          color: "#356468",
+          label: "Forest",
+        },
+        {
+          color: "#91a5a1",
+          label: "Sage",
+        },
+        {
+          color: "#d7b09e",
+          label: "Coffee",
+        },
+        {
+          color: "#eccdc3",
+          label: "Blush",
+        },
+        {
+          color: "#e9e7e3",
+          label: "Ivory",
+        },
+      ],
+    },
+    fontSize: {
+      options: [10, 12, 14, "default", 18, 20, 24, 30, 36, 48, 60, 72],
     },
   };
 
