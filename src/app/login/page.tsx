@@ -34,7 +34,7 @@ const Page: NextPage<PageProps> = async ({ searchParams }) => {
     <Fragment>
       <header>
         <div className="flex h-16 w-full flex-col items-center justify-center">
-          <h2 className="text-forest-500 font-lora text-3xl font-light tracking-wide">
+          <h2 className="font-lora text-3xl font-light tracking-wide text-forest-500">
             {process.env.NEXT_PUBLIC_COUPLE_NAME ?? "Wedding"}
           </h2>
         </div>
