@@ -40,7 +40,7 @@ const Navigation: React.FC<NavigationProps> = ({ dynamicEntries }) => {
           {process.env.NEXT_PUBLIC_COUPLE_NAME ?? "Wedding"}
         </h2>
       </div>
-      <Navbar onMenuOpenChange={setIsMenuOpen}>
+      <Navbar onMenuOpenChange={setIsMenuOpen} className="bg-ivory-300">
         <NavbarContent>
           <NavbarMenuToggle
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}

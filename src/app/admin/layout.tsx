@@ -11,7 +11,7 @@ export default async function Layout({
   return (
     <>
       <AdminAuthWrapper session={session}>
-        <Navbar className="mb-2">
+        <Navbar className="mb-2 bg-ivory-300">
           <NavbarContent>
             <NavbarItem>
               <Link href="/admin">Home</Link>
