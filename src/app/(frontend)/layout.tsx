@@ -11,7 +11,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div>
-      <header>
+      <header className="sticky top-0 z-50 bg-ivory-300">
         <Navigation dynamicEntries={extraLinks} />
       </header>
       <main>{children}</main>
