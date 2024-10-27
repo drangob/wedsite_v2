@@ -174,7 +174,7 @@ async function main() {
       update: {},
       create: {
         id: i.toString(),
-        from: process.env.MAILGUN_SENDER_EMAIL!,
+        from: process.env.EMAIL_SENDER!,
         subject: faker.lorem.sentence(),
         body: faker.lorem.paragraph(),
         sentAt: faker.date.recent(),

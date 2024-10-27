@@ -7,5 +7,8 @@ export const prepareEmailBody = (
     newEmail = newEmail.replace(new RegExp(`\`${key}\``, "g"), value);
   }
   newEmail = newEmail.replace(/\n/g, "<br />");
+
+  // wrap the email in <html> and <body> tags to ensure it's rendered correctly
+  newEmail = `<html><body>${newEmail}</body></html>`;
   return newEmail;
 };

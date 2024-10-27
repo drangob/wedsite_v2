@@ -13,10 +13,9 @@ export default defineConfig({
       DISCORD_CLIENT_ID: "fake_discord_client_id",
       DISCORD_CLIENT_SECRET: "fake_discord_client_secret",
       NEXTAUTH_SECRET: "fake_nextauth_secret",
-      MAILGUN_API_KEY: "fake_mailgun_api_key",
-      MAILGUN_DOMAIN: "fake_mailgun_domain",
-      MAILGUN_SENDER_EMAIL:
-        "Fake Sender <fake_mailgun_sender_email@example.com>",
+      EMAIL_RESEND_API_KEY: "fake_email_api_key",
+      EMAIL_DOMAIN: "fake_email_domain",
+      EMAIL_SENDER: "Fake Sender <fake_email_sender_email@example.com>",
     },
   },
   resolve: {
