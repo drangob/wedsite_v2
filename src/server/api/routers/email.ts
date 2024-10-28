@@ -1,11 +1,23 @@
 import { z } from "zod";
 import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
-import { Resend, type CreateEmailOptions } from "resend";
+import { Resend } from "resend";
 
 import { prepareEmailBody } from "@/utils/email";
 
-const resend = new Resend(process.env.EMAIL_RESEND_API_KEY);
+import nodemailer from "nodemailer";
+
+const resend: Resend = new Resend(process.env.EMAIL_RESEND_API_KEY);
+
+const smtp = nodemailer.createTransport({
+  host: process.env.EMAIL_SMTP_HOST,
+  port: parseInt(process.env.EMAIL_SMTP_PORT ?? "587"),
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_SMTP_USER,
+    pass: process.env.EMAIL_SMTP_PASS,
+  },
+});
 
 const EmailSchema = z.object({
   id: z.string(),
@@ -48,7 +60,10 @@ export const emailRouter = createTRPCRouter({
   createEmail: adminProcedure.mutation(async () => {
     const a = await db.email.create({
       data: {
-        from: process.env.EMAIL_SENDER!,
+        from:
+          process.env.EMAIL === "smtp"
+            ? process.env.EMAIL_SMTP_SENDER!
+            : process.env.EMAIL_RESEND_SENDER!,
         subject: "New email",
         body: "",
         to: {
@@ -151,15 +166,34 @@ export const emailRouter = createTRPCRouter({
             websiteUrl: `${process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com"}?uid=${recipient.id}`,
             uid: recipient.id,
           });
-          const emailData: CreateEmailOptions = {
-            from: process.env.EMAIL_SENDER!,
+          const emailData = {
+            from: "",
             to: recipient.email,
             subject: email.subject,
             html: emailBody,
           };
-          const result = await resend.emails.send(emailData);
-          if (result.error) {
-            throw new Error(result.error.message);
+          switch (process.env.EMAIL) {
+            case "smtp":
+              emailData.from = process.env.EMAIL_SMTP_SENDER!;
+              await new Promise<void>((resolve, reject) => {
+                smtp.sendMail(emailData, (error) => {
+                  if (error) {
+                    reject(new Error(error.message));
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+              break;
+            case "resend":
+              emailData.from = process.env.EMAIL_RESEND_SENDER!;
+              const result = await resend.emails.send(emailData);
+              if (result.error) {
+                throw new Error(result.error.message);
+              }
+              break;
+            default:
+              throw new Error("Invalid email provider");
           }
 
           sentEmails.push(recipient.email);

@@ -15,7 +15,8 @@ export default defineConfig({
       NEXTAUTH_SECRET: "fake_nextauth_secret",
       EMAIL_RESEND_API_KEY: "fake_email_api_key",
       EMAIL_DOMAIN: "fake_email_domain",
-      EMAIL_SENDER: "Fake Sender <fake_email_sender_email@example.com>",
+      EMAIL_RESEND_SENDER:
+        "Fake Sender <fake_EMAIL_RESEND_SENDER_email@example.com>",
     },
   },
   resolve: {

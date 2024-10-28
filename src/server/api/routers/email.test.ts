@@ -1,5 +1,5 @@
 import { describe, it, vi, expect } from "vitest";
-import { createCaller, type AppRouter } from "../root";
+import { createCaller } from "../root";
 import { createTRPCContext } from "../trpc";
 
 import { dbMock } from "@/server/setupTests";
