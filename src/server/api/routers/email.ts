@@ -3,21 +3,34 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import { Resend } from "resend";
 
-import { prepareEmailBody } from "@/utils/email";
+import { prepareEmailBody, substituteEmailVariables } from "@/utils/email";
 
 import nodemailer from "nodemailer";
 
-const resend: Resend = new Resend(process.env.EMAIL_RESEND_API_KEY);
+let resend: Resend | null = null;
+let smtp: nodemailer.Transporter | null = null;
 
-const smtp = nodemailer.createTransport({
-  host: process.env.EMAIL_SMTP_HOST,
-  port: parseInt(process.env.EMAIL_SMTP_PORT ?? "587"),
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_SMTP_USER,
-    pass: process.env.EMAIL_SMTP_PASS,
-  },
-});
+const getResend = () => {
+  if (!resend) {
+    resend = new Resend(process.env.EMAIL_RESEND_API_KEY);
+  }
+  return resend;
+};
+
+const getSmtp = () => {
+  if (!smtp) {
+    smtp = nodemailer.createTransport({
+      host: process.env.EMAIL_SMTP_HOST,
+      port: parseInt(process.env.EMAIL_SMTP_PORT ?? "587"),
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_SMTP_USER,
+        pass: process.env.EMAIL_SMTP_PASS,
+      },
+    });
+  }
+  return smtp;
+};
 
 const EmailSchema = z.object({
   id: z.string(),
@@ -161,22 +174,32 @@ export const emailRouter = createTRPCRouter({
             continue;
           }
           // Prepare email data
-          const emailBody = prepareEmailBody(email.body, {
+          const baseUrl =
+            process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com";
+          const substitutions = {
             name: recipient.name,
-            websiteUrl: `${process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com"}?uid=${recipient.id}`,
+            websiteUrl: `<a href="${baseUrl}?uid=${recipient.id}">${baseUrl}?uid=${recipient.id}</a>`,
             uid: recipient.id,
-          });
+          };
+
+          const emailPlaintext = substituteEmailVariables(
+            email.body,
+            substitutions,
+          );
+          const emailBody = prepareEmailBody(email.body, substitutions);
+
           const emailData = {
             from: "",
             to: recipient.email,
             subject: email.subject,
             html: emailBody,
+            text: emailPlaintext,
           };
           switch (process.env.EMAIL) {
             case "smtp":
               emailData.from = process.env.EMAIL_SMTP_SENDER!;
               await new Promise<void>((resolve, reject) => {
-                smtp.sendMail(emailData, (error) => {
+                getSmtp().sendMail(emailData, (error) => {
                   if (error) {
                     reject(new Error(error.message));
                   } else {
@@ -187,7 +210,7 @@ export const emailRouter = createTRPCRouter({
               break;
             case "resend":
               emailData.from = process.env.EMAIL_RESEND_SENDER!;
-              const result = await resend.emails.send(emailData);
+              const result = await getResend().emails.send(emailData);
               if (result.error) {
                 throw new Error(result.error.message);
               }
