@@ -3,7 +3,11 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import { Resend } from "resend";
 
-import { prepareEmailBody, substituteEmailVariables } from "@/utils/email";
+import {
+  bulkResendInBatches,
+  prepareEmailBody,
+  substituteEmailVariables,
+} from "@/utils/email";
 
 import nodemailer from "nodemailer";
 
@@ -166,61 +170,65 @@ export const emailRouter = createTRPCRouter({
         throw new Error("No guest emails found");
       }
 
-      const sentEmails = [];
       try {
-        // send an email per guest
-        for (const recipient of email.to) {
-          if (!recipient.email || !recipient.name) {
-            continue;
-          }
-          // Prepare email data
-          const baseUrl =
-            process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com";
-          const substitutions = {
-            name: recipient.name,
-            websiteUrl: `<a href="${baseUrl}?uid=${recipient.id}">${baseUrl}?uid=${recipient.id}</a>`,
-            uid: recipient.id,
-          };
+        const baseUrl =
+          process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://example.com";
 
-          const emailPlaintext = substituteEmailVariables(
-            email.body,
-            substitutions,
-          );
-          const emailBody = prepareEmailBody(email.body, substitutions);
+        const bulkEmails = email.to
+          .map((recipient) => {
+            if (!recipient.email || !recipient.name) {
+              return null;
+            }
 
-          const emailData = {
-            from: "",
-            to: recipient.email,
-            subject: email.subject,
-            html: emailBody,
-            text: emailPlaintext,
-          };
-          switch (process.env.EMAIL) {
-            case "smtp":
-              emailData.from = process.env.EMAIL_SMTP_SENDER!;
-              await new Promise<void>((resolve, reject) => {
-                getSmtp().sendMail(emailData, (error) => {
-                  if (error) {
-                    reject(new Error(error.message));
-                  } else {
-                    resolve();
-                  }
-                });
-              });
-              break;
-            case "resend":
-              emailData.from = process.env.EMAIL_RESEND_SENDER!;
-              const result = await getResend().emails.send(emailData);
-              if (result.error) {
-                throw new Error(result.error.message);
-              }
-              break;
-            default:
-              throw new Error("Invalid email provider");
-          }
+            const substitutions = {
+              name: recipient.name,
+              websiteUrl: `<a href="${baseUrl}?uid=${recipient.id}">${baseUrl}?uid=${recipient.id}</a>`,
+              uid: recipient.id,
+            };
 
-          sentEmails.push(recipient.email);
+            const emailPlaintext = substituteEmailVariables(
+              email.body,
+              substitutions,
+            );
+            const emailBody = prepareEmailBody(email.body, substitutions);
+
+            return {
+              from: process.env.EMAIL_RESEND_SENDER!,
+              to: recipient.email,
+              subject: email.subject,
+              html: emailBody,
+              text: emailPlaintext,
+            };
+          })
+          .filter((email) => email !== null);
+
+        if (bulkEmails.length === 0) {
+          throw new Error("No valid guest emails found");
         }
+
+        if (process.env.EMAIL === "resend") {
+          const results = await bulkResendInBatches(getResend(), bulkEmails);
+          for (const { error } of results) {
+            if (error) {
+              throw new Error(error.message);
+            }
+          }
+        } else if (process.env.EMAIL === "smtp") {
+          for (const emailData of bulkEmails) {
+            await new Promise<void>((resolve, reject) => {
+              getSmtp().sendMail(emailData, (error) => {
+                if (error) {
+                  reject(new Error(error.message));
+                } else {
+                  resolve();
+                }
+              });
+            });
+          }
+        } else {
+          throw new Error("Invalid email provider");
+        }
+
         await db.email.update({
           where: {
             id: input.id,
@@ -232,9 +240,7 @@ export const emailRouter = createTRPCRouter({
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";
-        throw new Error(
-          `Failed to send email. ${errorMessage} Sent emails: ${sentEmails.join(", ")}`,
-        );
+        throw new Error(`Error sending emails. ${errorMessage}`);
       }
 
       return { success: true };
