@@ -90,6 +90,30 @@ async function main() {
     },
   });
 
+  const music = await prisma.content.upsert({
+    where: { slug: "music" },
+    update: {},
+    create: {
+      slug: "music",
+      title: "Music",
+      protected: true,
+    },
+  });
+
+  await prisma.contentPiece.upsert({
+    where: {
+      id: `${music.id}-0`,
+    },
+    update: {},
+    create: {
+      id: `${music.id}-0`,
+      html: "<h1>Music</h1>",
+      order: 0,
+      layout: "TEXT",
+      content: { connect: { slug: "music" } },
+    },
+  });
+
   const contact = await prisma.content.upsert({
     where: { slug: "contact" },
     update: {},

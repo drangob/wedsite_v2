@@ -31,6 +31,7 @@ const Navigation: React.FC<NavigationProps> = ({ dynamicEntries }) => {
     { label: "Home", href: "/" },
     { label: "RSVP", href: "/rsvp" },
     ...dynamicEntries,
+    { label: "Music Suggestions", href: "/music" },
   ];
 
   return (
