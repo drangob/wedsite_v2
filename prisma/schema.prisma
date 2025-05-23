@@ -68,6 +68,7 @@ model User {
   group          Group     @default(DAY)
   receivedEmails Email[]   @relation("EmailToUser")
   guestNames     String[]  @default([])
+  songSuggestions SongSuggestion[]
 }
 
 model VerificationToken {
@@ -143,4 +144,25 @@ model Email {
   sentAt    DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model Song {
+  id           String            @id @default(cuid())
+  spotifyId    String            @unique
+  trackName    String
+  artistNames  String[]
+  suggestions  SongSuggestion[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model SongSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+  songId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song        Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  suggestedAt DateTime @default(now())
+
+  @@unique([userId, songId]) // A user can suggest a song only once
 }
