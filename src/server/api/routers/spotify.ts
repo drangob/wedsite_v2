@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
@@ -14,24 +10,69 @@ const spotifyApi = SpotifyApi.withClientCredentials(
 );
 
 export const spotifyRouter = createTRPCRouter({
-  search: publicProcedure
+  search: protectedProcedure
     .input(z.object({ query: z.string() }))
-    .query(async ({ input }: { input: { query: string } }) => {
-      try {
-        const searchResults = await spotifyApi.search(input.query, [
-          "track",
-          "artist",
-          "album",
-        ]);
-        return searchResults.tracks?.items ?? [];
-      } catch (error) {
-        console.error("Error searching tracks on Spotify:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Error searching tracks on Spotify",
-        });
-      }
-    }),
+    .query(
+      async ({
+        input,
+        ctx,
+      }: {
+        input: { query: string };
+        ctx: { session: { user: { id: string } } };
+      }) => {
+        try {
+          const searchResults = await spotifyApi.search(
+            input.query,
+            ["track"],
+            "GB",
+            20,
+          );
+
+          const tracks = searchResults.tracks?.items ?? [];
+          const userId = ctx.session.user.id;
+
+          if (!tracks.length) return [];
+
+          const decoratedTracks = await Promise.all(
+            tracks.map(async (track) => {
+              const songInDb = await db.song.findUnique({
+                where: { spotifyId: track.id },
+                include: {
+                  suggestions: {
+                    select: {
+                      userId: true,
+                    },
+                  },
+                },
+              });
+
+              let suggestionCount = 0;
+              let isSuggestedByCurrentUser = false;
+
+              if (songInDb) {
+                suggestionCount = songInDb.suggestions.length;
+                isSuggestedByCurrentUser = songInDb.suggestions.some(
+                  (suggestion) => suggestion.userId === userId,
+                );
+              }
+
+              return {
+                ...track,
+                suggestionCount,
+                isSuggestedByCurrentUser,
+              };
+            }),
+          );
+          return decoratedTracks;
+        } catch (error) {
+          console.error("Error searching tracks on Spotify:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Error searching tracks on Spotify",
+          });
+        }
+      },
+    ),
   suggestSong: protectedProcedure
     .input(
       z.object({
@@ -155,4 +196,35 @@ export const spotifyRouter = createTRPCRouter({
         });
       }
     }),
+  getTopSongs: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const topSongs = await ctx.db.song.findMany({
+        take: 10,
+        orderBy: {
+          suggestions: {
+            _count: "desc",
+          },
+        },
+        include: {
+          _count: {
+            select: { suggestions: true },
+          },
+        },
+      });
+
+      return topSongs.map((song) => ({
+        id: song.id,
+        spotifyId: song.spotifyId,
+        trackName: song.trackName,
+        artistNames: song.artistNames,
+        suggestionCount: song._count.suggestions,
+      }));
+    } catch (error) {
+      console.error("Error fetching top songs:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Error fetching top songs",
+      });
+    }
+  }),
 });
