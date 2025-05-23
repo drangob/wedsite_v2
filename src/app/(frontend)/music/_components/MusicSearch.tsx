@@ -2,22 +2,24 @@
 
 import React, { useState } from "react";
 import { Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
-import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 import { useDebounce } from "use-debounce";
-import { toast } from "react-hot-toast";
 import { XCircle, PlusCircle, Heart } from "lucide-react";
+import { api } from "@/trpc/react";
+import { useSongActions } from "@/hooks/useSongActions";
 
 type SpotifyTrack = RouterOutputs["spotify"]["search"][number] & {
-  suggestionCount: number;
-  isSuggestedByCurrentUser: boolean;
+  // suggestionCount and isSuggestedByCurrentUser are already part of the search endpoint's return type if decorated properly
+  // No need to redefine them here if the backend provides them directly in the search results.
 };
 
 const MusicSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 750);
 
-  const utils = api.useUtils();
+  // Use the new hook, passing the debouncedSearchTerm for targeted invalidation
+  const { suggestSong, unsuggestSong, isSuggesting, isUnsuggesting } =
+    useSongActions(debouncedSearchTerm);
 
   const { data, error, isLoading, refetch, isFetching } =
     api.spotify.search.useQuery(
@@ -27,30 +29,6 @@ const MusicSearch = () => {
         placeholderData: (previousData) => previousData,
       },
     );
-
-  const { mutate: suggestSong } = api.spotify.suggestSong.useMutation({
-    onSuccess: (data) => {
-      toast.success(data.message || "Song suggested successfully!");
-      void utils.spotify.search.invalidate({ query: debouncedSearchTerm });
-      void utils.spotify.getSuggestedSongIds.invalidate();
-      void utils.spotify.getTopSongs.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to suggest song.");
-    },
-  });
-
-  const { mutate: unsuggestSong } = api.spotify.unsuggestSong.useMutation({
-    onSuccess: (data) => {
-      toast.success(data.message || "Song suggestion removed!");
-      void utils.spotify.search.invalidate({ query: debouncedSearchTerm });
-      void utils.spotify.getSuggestedSongIds.invalidate();
-      void utils.spotify.getTopSongs.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to remove suggestion.");
-    },
-  });
 
   const handleSearch = () => {
     if (debouncedSearchTerm.trim()) {
@@ -66,12 +44,13 @@ const MusicSearch = () => {
     }
   };
 
-  // If the search term is empty, don't show any results
   const results: SpotifyTrack[] = debouncedSearchTerm.trim()
     ? (data ?? [])
     : [];
 
   const showInitialLoadingSpinner = isLoading && !data;
+  // Determine if an action is in progress
+  const isActionInProgress = isSuggesting || isUnsuggesting;
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -113,7 +92,7 @@ const MusicSearch = () => {
                         {track.suggestionCount}
                       </span>
                     )}
-                    {isFetching ? (
+                    {isFetching || isActionInProgress ? ( // Show spinner if fetching search results OR if an action is in progress
                       <Spinner size="sm" />
                     ) : track.isSuggestedByCurrentUser ? (
                       <XCircle className="h-5 w-5 text-danger" />
