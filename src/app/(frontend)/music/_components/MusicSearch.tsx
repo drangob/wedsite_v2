@@ -2,67 +2,36 @@
 
 import React, { useState } from "react";
 import { Input, Listbox, ListboxItem, Spinner } from "@nextui-org/react";
+import { api } from "@/trpc/react";
+import type { RouterOutputs } from "@/trpc/react";
+import { useDebounce } from "use-debounce";
 
-// Basic type for Spotify track item - expand as needed
-interface SpotifyTrack {
-  id: string;
-  name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    images: Array<{ url: string }>;
-  };
-  external_urls: {
-    spotify: string;
-  };
-}
-
-interface SpotifyError {
-  error?: string;
-  message?: string; // Spotify API sometimes uses message for errors
-}
+type SpotifyTrack = RouterOutputs["spotify"]["search"][number];
 
 const MusicSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState<SpotifyTrack[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 750);
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
-    setLoading(true);
-    setError(null);
-    setResults([]);
+  const { data, error, isLoading, isFetching, refetch } =
+    api.spotify.search.useQuery(
+      { query: debouncedSearchTerm },
+      {
+        enabled: !!debouncedSearchTerm.trim(),
+      },
+    );
 
-    try {
-      const response = await fetch(
-        `/api/spotify/search?query=${encodeURIComponent(searchTerm)}`,
-      );
-      if (!response.ok) {
-        // Try to parse error response from Spotify API or our wrapper
-        const errorData = (await response.json()) as SpotifyError;
-        throw new Error(
-          errorData.error ?? errorData.message ?? `Error: ${response.status}`,
-        );
-      }
-      const data = (await response.json()) as SpotifyTrack[];
-      setResults(data);
-    } catch (err) {
-      console.error(err);
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred",
-      );
+  const handleSearch = () => {
+    if (debouncedSearchTerm.trim()) {
+      void refetch();
     }
-    setLoading(false);
   };
 
   const handleSelectTrack = (track: SpotifyTrack) => {
-    // Placeholder for handling track selection
-    // For now, we'll just log it to the console
     console.log("Selected track:", track);
-    // You might want to clear search term and results here, or add to a suggestions list
     setSearchTerm("");
-    setResults([]);
   };
+
+  const results: SpotifyTrack[] = data ?? [];
 
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
@@ -73,14 +42,14 @@ const MusicSearch = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            void handleSearch();
+            handleSearch();
           }
         }}
-        aria-label="Search Music"
+        onClear={() => setSearchTerm("")}
       />
-      {loading && <Spinner label="Searching..." />}
-      {error && <p className="text-danger">Error: {error}</p>}
-      {!loading && results.length > 0 && (
+      {(isLoading || isFetching) && <Spinner label="Searching..." />}
+      {error && <p className="text-danger">Error: {error.message}</p>}
+      {!isLoading && !isFetching && results.length > 0 && (
         <Listbox
           aria-label="Search Results"
           onAction={(key) => {
@@ -97,6 +66,7 @@ const MusicSearch = () => {
             >
               <div className="flex items-center gap-2">
                 {track.album.images[track.album.images.length - 1]?.url && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={track.album.images[track.album.images.length - 1]?.url}
                     alt={track.name}
@@ -116,9 +86,13 @@ const MusicSearch = () => {
           ))}
         </Listbox>
       )}
-      {!loading && searchTerm.length > 0 && results.length === 0 && !error && (
-        <p>No results found for &quot;{searchTerm}&quot;.</p>
-      )}
+      {!isLoading &&
+        !isFetching &&
+        debouncedSearchTerm.trim().length > 0 &&
+        results.length === 0 &&
+        !error && (
+          <p>No results found for &quot;{debouncedSearchTerm}&quot;.</p>
+        )}
     </div>
   );
 };

@@ -3,10 +3,13 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@/server/api/trpc";
+
 import { userRouter } from "./routers/user";
 import { contentRouter } from "./routers/content";
 import { rsvpRouter } from "./routers/rsvp";
 import { emailRouter } from "./routers/email";
+import { spotifyRouter } from "./routers/spotify";
+
 import { db } from "../db";
 
 /**
@@ -19,13 +22,17 @@ export const appRouter = createTRPCRouter({
   content: contentRouter,
   rsvp: rsvpRouter,
   email: emailRouter,
+  spotify: spotifyRouter,
   healthcheck: publicProcedure.query(async () => {
     try {
       await db.$queryRaw`SELECT 1;`;
       return { status: "OK" };
     } catch (error) {
-      console.error("Keep alive failed:", error);
-      return { status: error };
+      console.error("Healthcheck failed:", error);
+      return {
+        status: "ERROR",
+        message: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   }),
 });
