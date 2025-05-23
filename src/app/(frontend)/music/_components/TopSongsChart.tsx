@@ -18,9 +18,11 @@ const TopSongsChart = () => {
     error,
   } = api.spotify.getTopSongs.useQuery();
 
-  if (isLoading) return <p>Loading top songs...</p>;
-  if (error) return <p>Error loading top songs: {error.message}</p>;
-  if (!topSongs || topSongs.length === 0) return <p>No suggested songs yet.</p>;
+  if (isLoading) return <p className="p-1">Loading top songs...</p>;
+  if (error)
+    return <p className="p-1">Error loading top songs: {error.message}</p>;
+  if (!topSongs || topSongs.length === 0)
+    return <p className="p-1">No suggested songs yet.</p>;
 
   const chartData = topSongs.map((song) => ({
     name: `${song.trackName} - ${song.artistNames.join(", ")}`,

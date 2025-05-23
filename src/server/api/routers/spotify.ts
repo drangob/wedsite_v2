@@ -127,19 +127,36 @@ export const spotifyRouter = createTRPCRouter({
         });
       }
     }),
-  getSuggestedSongIds: protectedProcedure.query(async ({ ctx }) => {
+  getUserSuggestions: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     try {
-      const suggestions = await ctx.db.songSuggestion.findMany({
+      const userSuggestions = await ctx.db.songSuggestion.findMany({
         where: { userId },
-        select: { song: { select: { spotifyId: true } } },
+        include: {
+          song: {
+            select: {
+              id: true,
+              spotifyId: true,
+              trackName: true,
+              artistNames: true,
+            },
+          },
+        },
+        orderBy: {
+          suggestedAt: "desc",
+        },
       });
-      return suggestions.map((s) => s.song.spotifyId);
+
+      return userSuggestions.map((suggestionWithSong) => ({
+        id: suggestionWithSong.song.spotifyId,
+        title: suggestionWithSong.song.trackName,
+        artist: suggestionWithSong.song.artistNames.join(", "),
+      }));
     } catch (error) {
-      console.error("Error fetching suggested song IDs:", error);
+      console.error("Error fetching user's suggested songs:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Error fetching suggested song IDs",
+        message: "Error fetching user's suggested songs",
       });
     }
   }),
