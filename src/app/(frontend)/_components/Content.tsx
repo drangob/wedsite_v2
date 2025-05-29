@@ -1,42 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
-"use client";
-
-import { api } from "@/trpc/react";
+import { api } from "@/trpc/server";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import React, { Fragment } from "react";
+import { type HTMLAttributes, Fragment } from "react";
+import { type inferRouterOutputs } from "@trpc/server";
+import { type AppRouter } from "@/server/api/root";
 
-import { type HTMLAttributes } from "react";
-
-const shimmer = (w: number, h: number) => `
-<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <defs>
-    <linearGradient id="g">
-      <stop stop-color="#ddd" offset="20%" />
-      <stop stop-color="#eee" offset="50%" />
-      <stop stop-color="#ddd" offset="70%" />
-    </linearGradient>
-    <clipPath id="rounded">
-      <rect width="${w}" height="${h}" rx="15" ry="15" />
-    </clipPath>
-  </defs>
-  <rect width="${w}" height="${h}" fill="#ddd" clip-path="url(#rounded)" />
-  <rect id="r" width="${w}" height="${h}" fill="url(#g)" clip-path="url(#rounded)" />
-  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
-</svg>`;
-
-const toBase64 = (str: string) =>
-  typeof window === "undefined"
-    ? Buffer.from(str).toString("base64")
-    : window.btoa(str);
+type ContentOutput =
+  inferRouterOutputs<AppRouter>["content"]["getContentBySlug"];
 
 interface ContentPieceProps {
-  piece: {
-    id: string;
-    html: string;
-    layout: "TEXT" | "IMAGE_FIRST" | "IMAGE_LAST";
-    imageUrl?: string | null;
-  };
+  piece: ContentOutput["ContentPieces"][number];
 }
 
 const ContentPiece: React.FC<ContentPieceProps> = ({ piece }) => {
@@ -48,7 +22,6 @@ const ContentPiece: React.FC<ContentPieceProps> = ({ piece }) => {
       sizes="(max-width: 640px) 100vw, 50vw"
       src={piece.imageUrl}
       className="w-full sm:w-1/2"
-      placeholder={`data:image/svg+xml;base64,${toBase64(shimmer(800, 800))}`}
     />
   ) : (
     <div className="h-64 w-full bg-gray-300 sm:w-1/2"></div>
@@ -69,15 +42,13 @@ interface ContentProps extends HTMLAttributes<HTMLDivElement> {
   slug: string;
 }
 
-const Content = ({ slug }: ContentProps) => {
-  const { data, error } = api.content.getContentBySlug.useQuery(
-    {
+const Content = async ({ slug }: ContentProps) => {
+  let data: ContentOutput;
+  try {
+    data = await api.content.getContentBySlug({
       slug,
-    },
-    { retry: false },
-  );
-
-  if (error) {
+    });
+  } catch (error) {
     return notFound();
   }
 
