@@ -213,35 +213,4 @@ export const spotifyRouter = createTRPCRouter({
         });
       }
     }),
-  getTopSongs: protectedProcedure.query(async ({ ctx }) => {
-    try {
-      const topSongs = await ctx.db.song.findMany({
-        take: 10,
-        orderBy: {
-          suggestions: {
-            _count: "desc",
-          },
-        },
-        include: {
-          _count: {
-            select: { suggestions: true },
-          },
-        },
-      });
-
-      return topSongs.map((song) => ({
-        id: song.id,
-        spotifyId: song.spotifyId,
-        trackName: song.trackName,
-        artistNames: song.artistNames,
-        suggestionCount: song._count.suggestions,
-      }));
-    } catch (error) {
-      console.error("Error fetching top songs:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Error fetching top songs",
-      });
-    }
-  }),
 });
