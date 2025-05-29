@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/server/api/trpc";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/server/db";
@@ -213,4 +217,67 @@ export const spotifyRouter = createTRPCRouter({
         });
       }
     }),
+
+  getAllSuggestedSongs: adminProcedure.query(async ({ ctx }) => {
+    const songs = await ctx.db.song.findMany({
+      include: {
+        suggestions: {
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            suggestions: true,
+          },
+        },
+      },
+      orderBy: {
+        suggestions: {
+          _count: "desc",
+        },
+      },
+    });
+
+    return songs;
+  }),
+
+  getAllSuggestedSongsCSV: adminProcedure.query(async ({ ctx }) => {
+    const songs = await ctx.db.song.findMany({
+      include: {
+        suggestions: {
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            suggestions: true,
+          },
+        },
+      },
+      orderBy: {
+        suggestions: {
+          _count: "desc",
+        },
+      },
+    });
+
+    const csv = [
+      ["Song", "Artist", "Suggestions"],
+      ...songs.map((song) => [
+        song.trackName,
+        song.artistNames.join(", "),
+        song._count.suggestions,
+      ]),
+    ]
+      .map((row) =>
+        row
+          .map((cell) => (typeof cell === "number" ? cell : `"${cell}"`))
+          .join(","),
+      )
+      .join("\n");
+
+    return csv;
+  }),
 });

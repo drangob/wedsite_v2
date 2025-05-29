@@ -28,6 +28,9 @@ export default async function Layout({
             <NavbarItem>
               <Link href="/admin/email">Email</Link>
             </NavbarItem>
+            <NavbarItem>
+              <Link href="/admin/music">Music</Link>
+            </NavbarItem>
           </NavbarContent>
         </Navbar>
         <div className="mx-auto flex max-w-[1024px] flex-col justify-center px-6">
