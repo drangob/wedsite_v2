@@ -18,7 +18,6 @@ export const useSongActions = (debouncedSearchTerm?: string) => {
         void utils.spotify.search.invalidate();
       }
       void utils.spotify.getUserSuggestions.invalidate();
-      void utils.spotify.getTopSongs.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to suggest song.");
@@ -38,7 +37,6 @@ export const useSongActions = (debouncedSearchTerm?: string) => {
         void utils.spotify.search.invalidate();
       }
       void utils.spotify.getUserSuggestions.invalidate();
-      void utils.spotify.getTopSongs.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to remove suggestion.");
