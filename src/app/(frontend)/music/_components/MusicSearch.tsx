@@ -8,18 +8,14 @@ import { XCircle, PlusCircle, Heart } from "lucide-react";
 import { api } from "@/trpc/react";
 import { useSongActions } from "@/hooks/useSongActions";
 
-type SpotifyTrack = RouterOutputs["spotify"]["search"][number] & {
-  // suggestionCount and isSuggestedByCurrentUser are already part of the search endpoint's return type if decorated properly
-  // No need to redefine them here if the backend provides them directly in the search results.
-};
+type SpotifyTrack = RouterOutputs["spotify"]["search"][number];
 
 const MusicSearch = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 750);
 
-  // Use the new hook, passing the debouncedSearchTerm for targeted invalidation
   const { suggestSong, unsuggestSong, isSuggesting, isUnsuggesting } =
-    useSongActions(debouncedSearchTerm);
+    useSongActions();
 
   const { data, error, isLoading, refetch, isFetching } =
     api.spotify.search.useQuery(
