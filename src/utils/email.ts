@@ -1,4 +1,4 @@
-import { CreateBatchResponse, Resend } from "resend";
+import { type CreateBatchResponse, type Resend } from "resend";
 
 export const substituteEmailVariables = (
   email: string,
