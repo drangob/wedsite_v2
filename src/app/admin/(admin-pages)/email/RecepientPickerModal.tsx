@@ -107,7 +107,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
           <>
             <Switch
               isSelected={allDayGuestsSelected}
-              onClick={handleSelectAllDayGuests}
+              onChange={handleSelectAllDayGuests}
             >
               <h2>Day Guests</h2>
             </Switch>
@@ -122,7 +122,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
                     key={e.guest.id}
                     className="block"
                     isSelected={e.selected}
-                    onClick={() => handleSelectDayGuest(e.guest)}
+                    onChange={() => handleSelectDayGuest(e.guest)}
                   >
                     {e.guest.name}
                   </Switch>
@@ -131,7 +131,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
             </Accordion>
             <Switch
               isSelected={allEveningGuestsSelected}
-              onClick={handleSelectAllEveningGuests}
+              onChange={handleSelectAllEveningGuests}
             >
               <h2>Evening Guests</h2>
             </Switch>
@@ -146,7 +146,7 @@ const RecepientPickerModal: React.FC<RecepientPickerModalProps> = ({
                     key={e.guest.id}
                     className="block"
                     isSelected={e.selected}
-                    onClick={() => handleSelectEveningGuest(e.guest)}
+                    onChange={() => handleSelectEveningGuest(e.guest)}
                   >
                     {e.guest.name}
                   </Switch>
